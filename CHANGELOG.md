@@ -17,6 +17,7 @@ All notable changes to this project are documented here. The format follows
     switcher, and the native Apple TV player with a Channels info tab and channel/favorite actions.
   - Generated iOS icon and tvOS layered icons / top shelf images (`scripts/make-icons.swift`).
   - Xcode Cloud support (`ci_scripts/ci_post_clone.sh` installs Rust) and export options for uploads.
+  - First TestFlight builds (0.2.0 build 1, iOS and tvOS) uploaded to the "FluxTV Player" record.
 - `crates/fluxtv-ffi`: UniFFI bindings (`FluxEngine`) and a local media server for AVPlayer:
   - Live MPEG-TS repackaged into keyframe-aligned HLS (no transcoding), with automatic reconnects and
     idle release of the upstream connection while paused.

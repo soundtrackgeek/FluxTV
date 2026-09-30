@@ -184,19 +184,32 @@ installs Rust on the build machine. Create a workflow per scheme (FluxTV iOS, Fl
 Archive action and TestFlight (internal testing) as the post-action. The apps declare
 `ITSAppUsesNonExemptEncryption = NO`, so builds don't wait for an export compliance answer.
 
-To upload from a Mac instead, archive and export with automatic signing (bump `CURRENT_PROJECT_VERSION`
-first; each upload needs a new build number):
+To upload from a Mac instead, archive and export with automatic signing. App Store Connect rejects builds
+from outdated Xcode betas, so point `DEVELOPER_DIR` at a release Xcode, and bump `CURRENT_PROJECT_VERSION`
+first (each upload needs a new build number):
 
 ```bash
 cd apps/apple
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 xcodebuild -project FluxTV.xcodeproj -scheme "FluxTV iOS" -destination 'generic/platform=iOS' \
   -archivePath build/FluxTV-iOS.xcarchive -allowProvisioningUpdates archive
 xcodebuild -exportArchive -archivePath build/FluxTV-iOS.xcarchive -exportPath build/export-ios \
   -exportOptionsPlist ExportOptions.plist -allowProvisioningUpdates
 ```
 
-`ExportOptions.plist` uses `method = app-store-connect` and `destination = upload`. Use
-`-scheme "FluxTV tvOS" -destination 'generic/platform=tvOS'` for the Apple TV build.
+`ExportOptions.plist` uses `method = app-store-connect` and `destination = upload`. For Apple TV, automatic
+signing needs a registered Apple TV to make a development profile, so archive unsigned and let the export
+apply distribution signing (no devices needed):
+
+```bash
+xcodebuild -project FluxTV.xcodeproj -scheme "FluxTV tvOS" -destination 'generic/platform=tvOS' \
+  -archivePath build/FluxTV-tvOS.xcarchive CODE_SIGNING_ALLOWED=NO archive
+xcodebuild -exportArchive -archivePath build/FluxTV-tvOS.xcarchive -exportPath build/export-tvos \
+  -exportOptionsPlist ExportOptions.plist -allowProvisioningUpdates
+```
+
+The App Store Connect record is **FluxTV Player** (the name "FluxTV" was taken); on the home screen the
+app is still called FluxTV.
 
 ## Development
 
