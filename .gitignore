@@ -1,0 +1,22 @@
+# Secrets
+.env
+.env.*
+
+# Rust
+/target/
+
+# Node / frontend
+node_modules/
+dist/
+*.local
+
+# Tauri
+apps/windows/src-tauri/target/
+apps/windows/src-tauri/gen/schemas/
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db

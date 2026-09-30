@@ -1,0 +1,31 @@
+[package]
+name = "fluxtv-windows"
+description = "FluxTV IPTV player for Windows"
+authors = ["Jørn Tillnes"]
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+# The `_lib` suffix avoids a name clash between the lib and bin targets on Windows
+# (https://github.com/rust-lang/cargo/issues/8519).
+name = "fluxtv_windows_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+fluxtv-core = { path = "../../../crates/fluxtv-core" }
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "net", "sync", "time"] }
+axum = { version = "0.8.9", default-features = false, features = ["tokio", "http1"] }
+reqwest = { version = "0.13.5", default-features = false, features = ["stream"] }
+futures-util = "0.3.34"
+tokio-util = "0.7.19"
+log = "0.4.34"
+uuid = { version = "1.26.1", features = ["v4"] }
+tauri-plugin-window-state = "2.5.0"
