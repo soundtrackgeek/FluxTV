@@ -1,0 +1,31 @@
+[package]
+name = "fluxtv-ffi"
+description = "UniFFI bindings and local media server for the FluxTV Apple apps"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["staticlib", "lib"]
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi-bindgen.rs"
+required-features = ["bindgen"]
+
+[features]
+bindgen = ["uniffi/cli"]
+
+[dependencies]
+fluxtv-core = { path = "../fluxtv-core" }
+uniffi = "0.32.2"
+futures-util = "0.3.34"
+log = "0.4.34"
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls", "stream"] }
+thiserror = "2.0.21"
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "net", "io-util", "sync", "time", "macros"] }
+tokio-util = "0.7.19"
+uuid = { version = "1.26.1", features = ["v4"] }
+
+[dev-dependencies]
+tokio = { version = "1.53.1", features = ["rt-multi-thread"] }

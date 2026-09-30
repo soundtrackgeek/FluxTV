@@ -6,11 +6,13 @@
 //! - [`m3u`]: M3U / M3U Plus playlist parsing
 //! - [`xmltv`]: streaming XMLTV (EPG) parsing
 //! - [`xtream`]: Xtream Codes API client
+//! - [`hls`]: MPEG-TS → HLS repackaging for AVPlayer (Apple apps)
 //! - [`search`]: name normalization and ranked search
 //! - [`store`]: SQLite cache for catalog, guide, favorites and history
 //! - [`library`]: [`FluxCore`], the high-level façade tying it all together
 
 pub mod error;
+pub mod hls;
 pub mod library;
 pub mod m3u;
 pub mod models;

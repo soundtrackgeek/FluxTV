@@ -108,6 +108,9 @@ const MAX_PROGRAMME_SECS: i64 = 12 * 3600;
 pub struct Store {
     path: Option<PathBuf>,
     conn: Mutex<Connection>,
+    /// Passwords held only in memory (the Apple apps keep them in the Keychain and hand
+    /// them over at launch). Used when the database row has no password.
+    runtime_passwords: Mutex<HashMap<i64, String>>,
 }
 
 fn configure(conn: &Connection) -> Result<()> {
@@ -174,7 +177,7 @@ impl Store {
         }
         let conn = Connection::open(&path)?;
         configure(&conn)?;
-        let store = Self { path: Some(path), conn: Mutex::new(conn) };
+        let store = Self { path: Some(path), conn: Mutex::new(conn), runtime_passwords: Mutex::default() };
         store.migrate()?;
         Ok(store)
     }
@@ -182,7 +185,7 @@ impl Store {
     pub fn open_in_memory() -> Result<Self> {
         let conn = Connection::open_in_memory()?;
         configure(&conn)?;
-        let store = Self { path: None, conn: Mutex::new(conn) };
+        let store = Self { path: None, conn: Mutex::new(conn), runtime_passwords: Mutex::default() };
         store.migrate()?;
         Ok(store)
     }
@@ -264,11 +267,12 @@ impl Store {
              FROM sources ORDER BY id",
         )?;
         let rows = stmt.query_map([], source_from_row)?.collect::<rusqlite::Result<Vec<_>>>()?;
-        Ok(rows)
+        Ok(rows.into_iter().map(|s| self.with_runtime_password(s)).collect())
     }
 
     pub fn source(&self, id: i64) -> Result<Source> {
-        self.conn()
+        let source = self
+            .conn()
             .query_row(
                 "SELECT id, name, kind, url, username, password, epg_url, created_at, catalog_updated_at, epg_updated_at
                  FROM sources WHERE id = ?1",
@@ -276,7 +280,24 @@ impl Store {
                 source_from_row,
             )
             .optional()?
-            .ok_or_else(|| Error::NotFound(format!("source {id}")))
+            .ok_or_else(|| Error::NotFound(format!("source {id}")))?;
+        Ok(self.with_runtime_password(source))
+    }
+
+    /// Provide a source's password for this session without writing it to the database.
+    pub fn set_runtime_password(&self, id: i64, password: Option<String>) {
+        let mut map = self.runtime_passwords.lock().unwrap_or_else(|e| e.into_inner());
+        match password.filter(|p| !p.is_empty()) {
+            Some(p) => map.insert(id, p),
+            None => map.remove(&id),
+        };
+    }
+
+    fn with_runtime_password(&self, mut s: Source) -> Source {
+        if s.password.is_none() {
+            s.password = self.runtime_passwords.lock().unwrap_or_else(|e| e.into_inner()).get(&s.id).cloned();
+        }
+        s
     }
 
     pub fn delete_source(&self, id: i64) -> Result<()> {
@@ -438,6 +459,36 @@ impl Store {
             params![source_id, kind.as_str(), channel_id, now()],
         )?;
         Ok(true)
+    }
+
+    /// Set a favorite explicitly (used to restore favorites from a backup).
+    pub fn set_favorite(&self, source_id: i64, kind: ContentKind, channel_id: &str, favorite: bool) -> Result<()> {
+        let conn = self.conn();
+        if favorite {
+            conn.execute(
+                "INSERT OR IGNORE INTO favorites(source_id, kind, channel_id, added_at) VALUES (?1, ?2, ?3, ?4)",
+                params![source_id, kind.as_str(), channel_id, now()],
+            )?;
+        } else {
+            conn.execute(
+                "DELETE FROM favorites WHERE source_id = ?1 AND kind = ?2 AND channel_id = ?3",
+                params![source_id, kind.as_str(), channel_id],
+            )?;
+        }
+        Ok(())
+    }
+
+    /// Favorite channel ids in the order they were added, including channels missing from
+    /// the current catalog.
+    pub fn favorite_ids(&self, source_id: i64, kind: ContentKind) -> Result<Vec<String>> {
+        let conn = self.conn();
+        let mut stmt = conn.prepare_cached(
+            "SELECT channel_id FROM favorites WHERE source_id = ?1 AND kind = ?2 ORDER BY added_at, rowid",
+        )?;
+        let rows = stmt
+            .query_map(params![source_id, kind.as_str()], |r| r.get(0))?
+            .collect::<rusqlite::Result<Vec<String>>>()?;
+        Ok(rows)
     }
 
     pub fn favorites(&self, source_id: i64, kind: ContentKind) -> Result<Vec<Channel>> {
@@ -801,6 +852,41 @@ mod tests {
         assert_eq!(s.recent(id, ContentKind::Live, 10).unwrap()[0].id, "20");
         assert!(!s.toggle_favorite(id, ContentKind::Live, "12").unwrap());
         assert!(s.favorites(id, ContentKind::Live).unwrap().is_empty());
+    }
+
+    #[test]
+    fn runtime_passwords_stay_out_of_the_database() {
+        let s = Store::open_in_memory().unwrap();
+        let src = s
+            .insert_source(&NewSource {
+                name: "Keychain".into(),
+                kind: SourceKind::Xtream,
+                url: "http://h".into(),
+                username: Some("u".into()),
+                password: None,
+                epg_url: None,
+            })
+            .unwrap();
+        assert_eq!(src.password, None);
+        s.set_runtime_password(src.id, Some("secret".into()));
+        assert_eq!(s.source(src.id).unwrap().password.as_deref(), Some("secret"));
+        assert_eq!(s.sources().unwrap()[0].password.as_deref(), Some("secret"));
+        let stored: Option<String> =
+            s.conn().query_row("SELECT password FROM sources WHERE id = ?1", [src.id], |r| r.get(0)).unwrap();
+        assert_eq!(stored, None);
+    }
+
+    #[test]
+    fn favorites_can_be_restored() {
+        let (s, id) = store_with_source();
+        seed(&s, id);
+        s.set_favorite(id, ContentKind::Live, "20", true).unwrap();
+        s.set_favorite(id, ContentKind::Live, "gone", true).unwrap();
+        s.set_favorite(id, ContentKind::Live, "20", true).unwrap();
+        assert_eq!(s.favorite_ids(id, ContentKind::Live).unwrap(), vec!["20".to_string(), "gone".to_string()]);
+        assert_eq!(s.favorites(id, ContentKind::Live).unwrap().len(), 1);
+        s.set_favorite(id, ContentKind::Live, "gone", false).unwrap();
+        assert_eq!(s.favorite_ids(id, ContentKind::Live).unwrap(), vec!["20".to_string()]);
     }
 
     #[test]

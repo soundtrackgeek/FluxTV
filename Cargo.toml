@@ -1,9 +1,9 @@
 [workspace]
 resolver = "2"
-members = ["crates/fluxtv-core", "apps/windows/src-tauri"]
+members = ["crates/fluxtv-core", "crates/fluxtv-ffi", "apps/windows/src-tauri"]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 license = "MIT"
 
@@ -14,3 +14,19 @@ lto = true
 opt-level = 3
 panic = "abort"
 strip = true
+
+# Apple static library (apps/apple). Unwinding lets UniFFI turn a Rust panic into a Swift
+# error instead of aborting the app; symbols are kept for crash reports (Xcode strips the app).
+[profile.apple-release]
+inherits = "release"
+panic = "unwind"
+strip = false
+
+# Faster Apple debug builds that are still optimized (guide import is heavy).
+[profile.apple-dev]
+inherits = "release"
+panic = "unwind"
+strip = false
+lto = false
+codegen-units = 16
+incremental = true

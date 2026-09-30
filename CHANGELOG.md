@@ -4,6 +4,32 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-09-30
+
+### Added
+
+- Apple apps (`apps/apple`): SwiftUI app for iPhone, iPad and Apple TV, distributed through TestFlight
+  (team `3L5769JKCM`, bundle `com.soundtrackgeek.fluxtv` for both platforms).
+  - Accounts stored in the Keychain as iCloud Keychain items, so an account added on iPhone appears on
+    Apple TV; passwords never reach the database.
+  - Live TV, movies, favorites, recently watched, search, TV guide grid and programme details.
+  - AVPlayer playback with Picture in Picture and background audio on iPhone, a portrait channel
+    switcher, and the native Apple TV player with a Channels info tab and channel/favorite actions.
+  - Generated iOS icon and tvOS layered icons / top shelf images (`scripts/make-icons.swift`).
+  - Xcode Cloud support (`ci_scripts/ci_post_clone.sh` installs Rust) and export options for uploads.
+- `crates/fluxtv-ffi`: UniFFI bindings (`FluxEngine`) and a local media server for AVPlayer:
+  - Live MPEG-TS repackaged into keyframe-aligned HLS (no transcoding), with automatic reconnects and
+    idle release of the upstream connection while paused.
+  - Movies sniffed by content: MP4 passed through with byte ranges, MPEG-TS served as seekable HLS VOD,
+    Matroska reported as unsupported. Provider redirects are reused to avoid HTTP 429 rate limits.
+  - One upstream connection at a time, so single-connection accounts can zap.
+- Core: `hls` module (TS segmenter, DVB AC-3/E-AC-3 relabelling, live and VOD playlists, TS probing),
+  runtime (in-memory) source passwords, and favorite backup/restore.
+
+### Changed
+
+- Workspace, core and Windows app version 0.2.0.
+
 ## [0.1.0] - 2026-09-30
 
 ### Added

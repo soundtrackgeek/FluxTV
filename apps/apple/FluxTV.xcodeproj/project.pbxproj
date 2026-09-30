@@ -1,0 +1,509 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		07E11D65AC1EB484CE8234E7 /* AccountStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5DB4D1B8BC62E211A74DAD4 /* AccountStore.swift */; };
+		1D789CEF24278211CE5A2AAE /* Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9521D56C7C0800A67EFB6AE /* Formatting.swift */; };
+		31C1FFF80D9ECC9462ADC560 /* fluxtv_ffi.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02A3B8CF7BFA3492764172F /* fluxtv_ffi.swift */; };
+		337DAB6FE85C98B03588D8C5 /* PlayerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A7A888576708C001167AE0 /* PlayerModel.swift */; };
+		374316C21E58ABC3BDA8AC6F /* CatalogViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33E224ED976C49D64EE61B8F /* CatalogViews.swift */; };
+		37BA9A3E7409D542EB580E30 /* PlayerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64E41CDED7CFD4D67A165D8B /* PlayerScreen.swift */; };
+		3D9B473E1EF880AA86802E39 /* MoviesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C81812455E2ADDD461C5A26 /* MoviesView.swift */; };
+		4094A69DB388207538C37283 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 15B9206E03FCA976729EEBEE /* Assets.xcassets */; };
+		410B833A76C91F3D7C389499 /* PlayerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A7A888576708C001167AE0 /* PlayerModel.swift */; };
+		4F81B7A31097F99BB1960A3A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 490B38CE96CEBF21974A2509 /* SettingsView.swift */; };
+		5681522A97D6497F571848FF /* RemoteImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F78222B358EA5FEABB8F537 /* RemoteImage.swift */; };
+		57A215EA01BE0DB01CE514C5 /* FluxTVApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5B3480D391629AD691A7518 /* FluxTVApp.swift */; };
+		59B6CF639814A9FDE64CE168 /* MoviesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C81812455E2ADDD461C5A26 /* MoviesView.swift */; };
+		6D17FA3FF6A672D6E9A8103B /* FluxTVTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09BE69A972C808DBDAEED29B /* FluxTVTests.swift */; };
+		70CC1958AFCA796A43BD0637 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1ECEFADE895EFC8A277C991 /* AppModel.swift */; };
+		74CCF098014B94D13D3A14AF /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9B830B04B27487B040BE0B8 /* SearchView.swift */; };
+		7BDDCF0048614A661B6C3C93 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 490B38CE96CEBF21974A2509 /* SettingsView.swift */; };
+		8F56CF34B371971A3FCE495D /* fluxtv_ffi.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02A3B8CF7BFA3492764172F /* fluxtv_ffi.swift */; };
+		94CC81ACAE0A17654D097029 /* FluxTVApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5B3480D391629AD691A7518 /* FluxTVApp.swift */; };
+		A4678E8C18E801DEF69E4E6B /* CatalogViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33E224ED976C49D64EE61B8F /* CatalogViews.swift */; };
+		A545CC9DF4AEC454D6DC89CE /* GuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D76D8A8C35392C675B294B47 /* GuideView.swift */; };
+		B65180F3E65E1AAB585669E3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 15B9206E03FCA976729EEBEE /* Assets.xcassets */; };
+		BAED537C5BBA903B1FEEDE8A /* AccountFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 605447B682F0813D7EDB9047 /* AccountFormView.swift */; };
+		BF216ACC6DFE4D3C6DD0FCBC /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9B830B04B27487B040BE0B8 /* SearchView.swift */; };
+		C84E7C18307BC8D152B122A4 /* GuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D76D8A8C35392C675B294B47 /* GuideView.swift */; };
+		CF93966A372295F5A6BA2EE9 /* AccountFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 605447B682F0813D7EDB9047 /* AccountFormView.swift */; };
+		D3317B0C05D4970C3481697C /* RemoteImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F78222B358EA5FEABB8F537 /* RemoteImage.swift */; };
+		DD765E802362369F21CB59EE /* AccountStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5DB4D1B8BC62E211A74DAD4 /* AccountStore.swift */; };
+		DFBB2863786A7ACAE9840A4C /* PlayerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64E41CDED7CFD4D67A165D8B /* PlayerScreen.swift */; };
+		F3EAC04E5CDCE3D7FC509A3B /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1ECEFADE895EFC8A277C991 /* AppModel.swift */; };
+		FFCB413CA5D87EB31930B537 /* Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9521D56C7C0800A67EFB6AE /* Formatting.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D0A5E5D3F2BB280F231DAC52 /* PBXContainerItemProxy */ = {isa = PBXContainerItemProxy; containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */; proxyType = 1; remoteGlobalIDString = FD9A5C541C1FBD371E30B4FE; remoteInfo = "FluxTV iOS"; };
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		09BE69A972C808DBDAEED29B /* FluxTVTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FluxTVTests.swift"; sourceTree = "<group>"; };
+		13930E4F9C0B9B77332F68C7 /* FluxTV.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FluxTV.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		15B9206E03FCA976729EEBEE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets.xcassets"; sourceTree = "<group>"; };
+		33E224ED976C49D64EE61B8F /* CatalogViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CatalogViews.swift"; sourceTree = "<group>"; };
+		490B38CE96CEBF21974A2509 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView.swift"; sourceTree = "<group>"; };
+		5F78222B358EA5FEABB8F537 /* RemoteImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RemoteImage.swift"; sourceTree = "<group>"; };
+		605447B682F0813D7EDB9047 /* AccountFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AccountFormView.swift"; sourceTree = "<group>"; };
+		64E41CDED7CFD4D67A165D8B /* PlayerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayerScreen.swift"; sourceTree = "<group>"; };
+		68DC5B994207ECCAC5F2EBF8 /* build-rust.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "build-rust.sh"; sourceTree = "<group>"; };
+		6C81812455E2ADDD461C5A26 /* MoviesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MoviesView.swift"; sourceTree = "<group>"; };
+		86A7A888576708C001167AE0 /* PlayerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayerModel.swift"; sourceTree = "<group>"; };
+		A7D39D6445798D603F756EAB /* fluxtv_ffiFFI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "fluxtv_ffiFFI.h"; sourceTree = "<group>"; };
+		B02A3B8CF7BFA3492764172F /* fluxtv_ffi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "fluxtv_ffi.swift"; sourceTree = "<group>"; };
+		B06F49CD215DCBEC0D13CA58 /* Info-iOS.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-iOS.plist"; sourceTree = "<group>"; };
+		B1ECEFADE895EFC8A277C991 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel.swift"; sourceTree = "<group>"; };
+		D5DB4D1B8BC62E211A74DAD4 /* AccountStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AccountStore.swift"; sourceTree = "<group>"; };
+		D76D8A8C35392C675B294B47 /* GuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GuideView.swift"; sourceTree = "<group>"; };
+		D9521D56C7C0800A67EFB6AE /* Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Formatting.swift"; sourceTree = "<group>"; };
+		E5B3480D391629AD691A7518 /* FluxTVApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FluxTVApp.swift"; sourceTree = "<group>"; };
+		E9B830B04B27487B040BE0B8 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SearchView.swift"; sourceTree = "<group>"; };
+		EA97D3A344169EE26FB08ABC /* FluxTV.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FluxTV.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F36A49B3AD9567021B66A1EF /* FluxTVTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "FluxTVTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F51BA203842B2B374E14DECA /* Info-tvOS.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-tvOS.plist"; sourceTree = "<group>"; };
+		FA9AD55CD1E5AA0C6650EB09 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.module-map; path = "module.modulemap"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		12AE3AA25549F62D65069706 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (
+			); runOnlyForDeploymentPostprocessing = 0; };
+		1DA86BDEFE49623EC08FBC4A /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (
+			); runOnlyForDeploymentPostprocessing = 0; };
+		6EBB70C1CAC9E2DE2DBAFB13 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (
+			); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		22EE43E5F9A80405E6DFEACD /* App */ = {isa = PBXGroup; children = (
+				D5DB4D1B8BC62E211A74DAD4,
+				B1ECEFADE895EFC8A277C991,
+				E5B3480D391629AD691A7518,
+			); path = "App"; sourceTree = "<group>"; };
+		39173558B7F8BBD9119F85A1 /* Core */ = {isa = PBXGroup; children = (
+				D50C0248BC2E91CB8366CF36,
+			); path = "Core"; sourceTree = "<group>"; };
+		3CFFCE6CA245ADF5FC27600D /* Views */ = {isa = PBXGroup; children = (
+				605447B682F0813D7EDB9047,
+				33E224ED976C49D64EE61B8F,
+				D76D8A8C35392C675B294B47,
+				6C81812455E2ADDD461C5A26,
+				E9B830B04B27487B040BE0B8,
+				490B38CE96CEBF21974A2509,
+			); path = "Views"; sourceTree = "<group>"; };
+		8241ED42B56CC1DA7F726566 /* Products */ = {isa = PBXGroup; children = (
+				EA97D3A344169EE26FB08ABC,
+				13930E4F9C0B9B77332F68C7,
+				F36A49B3AD9567021B66A1EF,
+			); name = "Products"; sourceTree = "<group>"; };
+		A2772EB5676ED2B691193947 = {isa = PBXGroup; children = (
+				DE31F3CCECF0735A11D7D3F1,
+				C1C591EED98870CE3AE7A815,
+				BDF0843C374FB036FB5005EC,
+				8241ED42B56CC1DA7F726566,
+			); sourceTree = "<group>"; };
+		BDF0843C374FB036FB5005EC /* scripts */ = {isa = PBXGroup; children = (
+				68DC5B994207ECCAC5F2EBF8,
+			); path = "scripts"; sourceTree = "<group>"; };
+		C1C591EED98870CE3AE7A815 /* FluxTVTests */ = {isa = PBXGroup; children = (
+				09BE69A972C808DBDAEED29B,
+			); path = "FluxTVTests"; sourceTree = "<group>"; };
+		C4C0539432B31D51A59C3F76 /* Player */ = {isa = PBXGroup; children = (
+				86A7A888576708C001167AE0,
+				64E41CDED7CFD4D67A165D8B,
+			); path = "Player"; sourceTree = "<group>"; };
+		C64F91A36BC1DFFBFBF7BCE4 /* Shared */ = {isa = PBXGroup; children = (
+				D9521D56C7C0800A67EFB6AE,
+				5F78222B358EA5FEABB8F537,
+			); path = "Shared"; sourceTree = "<group>"; };
+		D50C0248BC2E91CB8366CF36 /* FFI */ = {isa = PBXGroup; children = (
+				B02A3B8CF7BFA3492764172F,
+				A7D39D6445798D603F756EAB,
+				FA9AD55CD1E5AA0C6650EB09,
+			); path = "FFI"; sourceTree = "<group>"; };
+		D7836E24B5D1D972A77E37FB /* Resources */ = {isa = PBXGroup; children = (
+				15B9206E03FCA976729EEBEE,
+				B06F49CD215DCBEC0D13CA58,
+				F51BA203842B2B374E14DECA,
+			); path = "Resources"; sourceTree = "<group>"; };
+		DE31F3CCECF0735A11D7D3F1 /* FluxTV */ = {isa = PBXGroup; children = (
+				22EE43E5F9A80405E6DFEACD,
+				3CFFCE6CA245ADF5FC27600D,
+				C4C0539432B31D51A59C3F76,
+				C64F91A36BC1DFFBFBF7BCE4,
+				39173558B7F8BBD9119F85A1,
+				D7836E24B5D1D972A77E37FB,
+			); path = "FluxTV"; sourceTree = "<group>"; };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4ADBE7B7C339027C4E2D56B1 /* FluxTV tvOS */ = {isa = PBXNativeTarget; buildConfigurationList = E1538080680E7C5B56B8D7CD; buildPhases = (
+				E73241A7EC9AB0FC7CF60B54 /* Build Rust core */,
+				AE4BADD34E6CA1F54D1652F1 /* Sources */,
+				6EBB70C1CAC9E2DE2DBAFB13 /* Frameworks */,
+				8BDC27F766EFF670BE83B985 /* Resources */,
+			); buildRules = (); dependencies = (); name = "FluxTV tvOS"; productName = FluxTV; productReference = 13930E4F9C0B9B77332F68C7 /* FluxTV.app */; productType = "com.apple.product-type.application"; };
+		984A1D6338D49A1E20867B67 /* FluxTVTests */ = {isa = PBXNativeTarget; buildConfigurationList = DD26F7160560AF95B536B6D1; buildPhases = (
+				4DB0004DBE3BE28232C7BC2B /* Sources */,
+				1DA86BDEFE49623EC08FBC4A /* Frameworks */,
+				7431F9505A09622EA848E8A7 /* Resources */,
+			); buildRules = (); dependencies = (
+				0AE17634C6667BD956D5F6B7 /* PBXTargetDependency */,
+			); name = FluxTVTests; productName = FluxTVTests; productReference = F36A49B3AD9567021B66A1EF /* FluxTVTests.xctest */; productType = "com.apple.product-type.bundle.unit-test"; };
+		FD9A5C541C1FBD371E30B4FE /* FluxTV iOS */ = {isa = PBXNativeTarget; buildConfigurationList = 72188BA401D676EBF9053DB1; buildPhases = (
+				79BA23AB64FFF0B016902E6E /* Build Rust core */,
+				4DC649BA2C0BECA850A75FF1 /* Sources */,
+				12AE3AA25549F62D65069706 /* Frameworks */,
+				320BC54D084AB85572A6424E /* Resources */,
+			); buildRules = (); dependencies = (); name = "FluxTV iOS"; productName = FluxTV; productReference = EA97D3A344169EE26FB08ABC /* FluxTV.app */; productType = "com.apple.product-type.application"; };
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		46F86FAA6BBF9AC94A7E4595 /* Project object */ = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 2700; LastUpgradeCheck = 2700; TargetAttributes = { FD9A5C541C1FBD371E30B4FE = {CreatedOnToolsVersion = 27.0;}; 4ADBE7B7C339027C4E2D56B1 = {CreatedOnToolsVersion = 27.0;}; 984A1D6338D49A1E20867B67 = {CreatedOnToolsVersion = 27.0; TestTargetID = FD9A5C541C1FBD371E30B4FE;}; }; }; buildConfigurationList = AC4D63F12EBBDCB32DFBA89F; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base); mainGroup = A2772EB5676ED2B691193947; productRefGroup = 8241ED42B56CC1DA7F726566 /* Products */; projectDirPath = ""; projectRoot = ""; targets = (
+				FD9A5C541C1FBD371E30B4FE /* FluxTV iOS */,
+				4ADBE7B7C339027C4E2D56B1 /* FluxTV tvOS */,
+				984A1D6338D49A1E20867B67 /* FluxTVTests */,
+			); };
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		320BC54D084AB85572A6424E /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
+				4094A69DB388207538C37283 /* Assets.xcassets in Resources */,
+			); runOnlyForDeploymentPostprocessing = 0; };
+		7431F9505A09622EA848E8A7 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
+			); runOnlyForDeploymentPostprocessing = 0; };
+		8BDC27F766EFF670BE83B985 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
+				B65180F3E65E1AAB585669E3 /* Assets.xcassets in Resources */,
+			); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		79BA23AB64FFF0B016902E6E /* Build Rust core */ = {isa = PBXShellScriptBuildPhase; alwaysOutOfDate = 1; buildActionMask = 2147483647; files = (); inputFileListPaths = (); inputPaths = (); name = "Build Rust core"; outputFileListPaths = (); outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/libfluxtv_ffi.a",
+			); runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "\"$PROJECT_DIR/scripts/build-rust.sh\"\n"; showEnvVarsInLog = 0; };
+		E73241A7EC9AB0FC7CF60B54 /* Build Rust core */ = {isa = PBXShellScriptBuildPhase; alwaysOutOfDate = 1; buildActionMask = 2147483647; files = (); inputFileListPaths = (); inputPaths = (); name = "Build Rust core"; outputFileListPaths = (); outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/libfluxtv_ffi.a",
+			); runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "\"$PROJECT_DIR/scripts/build-rust.sh\"\n"; showEnvVarsInLog = 0; };
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4DB0004DBE3BE28232C7BC2B /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+				6D17FA3FF6A672D6E9A8103B /* FluxTVTests.swift in Sources */,
+			); runOnlyForDeploymentPostprocessing = 0; };
+		4DC649BA2C0BECA850A75FF1 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+				07E11D65AC1EB484CE8234E7 /* AccountStore.swift in Sources */,
+				70CC1958AFCA796A43BD0637 /* AppModel.swift in Sources */,
+				94CC81ACAE0A17654D097029 /* FluxTVApp.swift in Sources */,
+				337DAB6FE85C98B03588D8C5 /* PlayerModel.swift in Sources */,
+				DFBB2863786A7ACAE9840A4C /* PlayerScreen.swift in Sources */,
+				FFCB413CA5D87EB31930B537 /* Formatting.swift in Sources */,
+				5681522A97D6497F571848FF /* RemoteImage.swift in Sources */,
+				BAED537C5BBA903B1FEEDE8A /* AccountFormView.swift in Sources */,
+				A4678E8C18E801DEF69E4E6B /* CatalogViews.swift in Sources */,
+				A545CC9DF4AEC454D6DC89CE /* GuideView.swift in Sources */,
+				59B6CF639814A9FDE64CE168 /* MoviesView.swift in Sources */,
+				74CCF098014B94D13D3A14AF /* SearchView.swift in Sources */,
+				7BDDCF0048614A661B6C3C93 /* SettingsView.swift in Sources */,
+				8F56CF34B371971A3FCE495D /* fluxtv_ffi.swift in Sources */,
+			); runOnlyForDeploymentPostprocessing = 0; };
+		AE4BADD34E6CA1F54D1652F1 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+				DD765E802362369F21CB59EE /* AccountStore.swift in Sources */,
+				F3EAC04E5CDCE3D7FC509A3B /* AppModel.swift in Sources */,
+				57A215EA01BE0DB01CE514C5 /* FluxTVApp.swift in Sources */,
+				410B833A76C91F3D7C389499 /* PlayerModel.swift in Sources */,
+				37BA9A3E7409D542EB580E30 /* PlayerScreen.swift in Sources */,
+				1D789CEF24278211CE5A2AAE /* Formatting.swift in Sources */,
+				D3317B0C05D4970C3481697C /* RemoteImage.swift in Sources */,
+				CF93966A372295F5A6BA2EE9 /* AccountFormView.swift in Sources */,
+				374316C21E58ABC3BDA8AC6F /* CatalogViews.swift in Sources */,
+				C84E7C18307BC8D152B122A4 /* GuideView.swift in Sources */,
+				3D9B473E1EF880AA86802E39 /* MoviesView.swift in Sources */,
+				BF216ACC6DFE4D3C6DD0FCBC /* SearchView.swift in Sources */,
+				4F81B7A31097F99BB1960A3A /* SettingsView.swift in Sources */,
+				31C1FFF80D9ECC9462ADC560 /* fluxtv_ffi.swift in Sources */,
+			); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0AE17634C6667BD956D5F6B7 /* PBXTargetDependency */ = {isa = PBXTargetDependency; target = FD9A5C541C1FBD371E30B4FE /* FluxTV iOS */; targetProxy = D0A5E5D3F2BB280F231DAC52 /* PBXContainerItemProxy */; };
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		003015C1D7FA2D43AF77EAC0 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = "Automatic";
+				CURRENT_PROJECT_VERSION = "1";
+				DEVELOPMENT_TEAM = "3L5769JKCM";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "x86_64";
+				GENERATE_INFOPLIST_FILE = "YES";
+				IPHONEOS_DEPLOYMENT_TARGET = "18.0";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = "0.2.0";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.soundtrackgeek.fluxtv.tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = "iphoneos";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_INCLUDE_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/FluxTV/Core/FFI",
+				);
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FluxTV.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FluxTV";
+			}; name = Release; };
+		03E09CFA6F3B6CA7574DF724 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = "NO";
+				CLANG_ANALYZER_NONNULL = "YES";
+				CLANG_ENABLE_MODULES = "YES";
+				CLANG_ENABLE_OBJC_ARC = "YES";
+				COPY_PHASE_STRIP = "NO";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = "NO";
+				ENABLE_STRICT_OBJC_MSGSEND = "YES";
+				GCC_NO_COMMON_BLOCKS = "YES";
+				SWIFT_COMPILATION_MODE = "wholemodule";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = "6.0";
+				VALIDATE_PRODUCT = "YES";
+			}; name = Release; };
+		2E57E90145562F4D10FE010E /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = "Automatic";
+				CURRENT_PROJECT_VERSION = "1";
+				DEVELOPMENT_TEAM = "3L5769JKCM";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "x86_64";
+				GENERATE_INFOPLIST_FILE = "YES";
+				IPHONEOS_DEPLOYMENT_TARGET = "18.0";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = "0.2.0";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.soundtrackgeek.fluxtv.tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = "iphoneos";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_INCLUDE_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/FluxTV/Core/FFI",
+				);
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FluxTV.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FluxTV";
+			}; name = Debug; };
+		5640637E678E380E9D8D59A9 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
+				CODE_SIGN_STYLE = "Automatic";
+				CURRENT_PROJECT_VERSION = "1";
+				DEVELOPMENT_TEAM = "3L5769JKCM";
+				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "x86_64";
+				INFOPLIST_FILE = "FluxTV/Resources/Info-iOS.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = "18.0";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
+				);
+				MARKETING_VERSION = "0.2.0";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lfluxtv_ffi",
+					"-framework",
+					"Security",
+					"-framework",
+					"SystemConfiguration",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.soundtrackgeek.fluxtv";
+				PRODUCT_NAME = "FluxTV";
+				SDKROOT = "iphoneos";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = "NO";
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = "NO";
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = "NO";
+				SWIFT_EMIT_LOC_STRINGS = "YES";
+				SWIFT_INCLUDE_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/FluxTV/Core/FFI",
+				);
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			}; name = Debug; };
+		56657375DA68005670D6ECC9 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
+				CODE_SIGN_STYLE = "Automatic";
+				CURRENT_PROJECT_VERSION = "1";
+				DEVELOPMENT_TEAM = "3L5769JKCM";
+				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
+				"EXCLUDED_ARCHS[sdk=appletvsimulator*]" = "x86_64";
+				INFOPLIST_FILE = "FluxTV/Resources/Info-tvOS.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
+				);
+				MARKETING_VERSION = "0.2.0";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lfluxtv_ffi",
+					"-framework",
+					"Security",
+					"-framework",
+					"SystemConfiguration",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.soundtrackgeek.fluxtv";
+				PRODUCT_NAME = "FluxTV";
+				SDKROOT = "appletvos";
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
+				SWIFT_EMIT_LOC_STRINGS = "YES";
+				SWIFT_INCLUDE_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/FluxTV/Core/FFI",
+				);
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				TARGETED_DEVICE_FAMILY = "3";
+				TVOS_DEPLOYMENT_TARGET = "18.0";
+			}; name = Release; };
+		64709C05FD3E8D2FCB9AC2AD /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = "NO";
+				CLANG_ANALYZER_NONNULL = "YES";
+				CLANG_ENABLE_MODULES = "YES";
+				CLANG_ENABLE_OBJC_ARC = "YES";
+				COPY_PHASE_STRIP = "NO";
+				DEBUG_INFORMATION_FORMAT = "dwarf";
+				ENABLE_STRICT_OBJC_MSGSEND = "YES";
+				ENABLE_TESTABILITY = "YES";
+				GCC_NO_COMMON_BLOCKS = "YES";
+				GCC_OPTIMIZATION_LEVEL = "0";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				ONLY_ACTIVE_ARCH = "YES";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = "6.0";
+			}; name = Debug; };
+		837AA21E8C72D04FA63BB0F9 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
+				CODE_SIGN_STYLE = "Automatic";
+				CURRENT_PROJECT_VERSION = "1";
+				DEVELOPMENT_TEAM = "3L5769JKCM";
+				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "x86_64";
+				INFOPLIST_FILE = "FluxTV/Resources/Info-iOS.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = "18.0";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
+				);
+				MARKETING_VERSION = "0.2.0";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lfluxtv_ffi",
+					"-framework",
+					"Security",
+					"-framework",
+					"SystemConfiguration",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.soundtrackgeek.fluxtv";
+				PRODUCT_NAME = "FluxTV";
+				SDKROOT = "iphoneos";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = "NO";
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = "NO";
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = "NO";
+				SWIFT_EMIT_LOC_STRINGS = "YES";
+				SWIFT_INCLUDE_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/FluxTV/Core/FFI",
+				);
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			}; name = Release; };
+		B122A0DDAE24F0A2AF1286C8 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
+				CODE_SIGN_STYLE = "Automatic";
+				CURRENT_PROJECT_VERSION = "1";
+				DEVELOPMENT_TEAM = "3L5769JKCM";
+				ENABLE_USER_SCRIPT_SANDBOXING = "NO";
+				"EXCLUDED_ARCHS[sdk=appletvsimulator*]" = "x86_64";
+				INFOPLIST_FILE = "FluxTV/Resources/Info-tvOS.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
+				);
+				MARKETING_VERSION = "0.2.0";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lfluxtv_ffi",
+					"-framework",
+					"Security",
+					"-framework",
+					"SystemConfiguration",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.soundtrackgeek.fluxtv";
+				PRODUCT_NAME = "FluxTV";
+				SDKROOT = "appletvos";
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
+				SWIFT_EMIT_LOC_STRINGS = "YES";
+				SWIFT_INCLUDE_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/FluxTV/Core/FFI",
+				);
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				TARGETED_DEVICE_FAMILY = "3";
+				TVOS_DEPLOYMENT_TARGET = "18.0";
+			}; name = Debug; };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		72188BA401D676EBF9053DB1 /* Build configuration list for PBXNativeTarget "FluxTV ios" */ = {isa = XCConfigurationList; buildConfigurations = (
+				5640637E678E380E9D8D59A9 /* Debug */,
+				837AA21E8C72D04FA63BB0F9 /* Release */,
+			); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		AC4D63F12EBBDCB32DFBA89F /* Build configuration list for PBXProject "FluxTV" */ = {isa = XCConfigurationList; buildConfigurations = (
+				64709C05FD3E8D2FCB9AC2AD /* Debug */,
+				03E09CFA6F3B6CA7574DF724 /* Release */,
+			); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		DD26F7160560AF95B536B6D1 /* Build configuration list for PBXNativeTarget "FluxTVTests" */ = {isa = XCConfigurationList; buildConfigurations = (
+				2E57E90145562F4D10FE010E /* Debug */,
+				003015C1D7FA2D43AF77EAC0 /* Release */,
+			); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		E1538080680E7C5B56B8D7CD /* Build configuration list for PBXNativeTarget "FluxTV tvos" */ = {isa = XCConfigurationList; buildConfigurations = (
+				B122A0DDAE24F0A2AF1286C8 /* Debug */,
+				56657375DA68005670D6ECC9 /* Release */,
+			); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+	};
+	rootObject = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+}

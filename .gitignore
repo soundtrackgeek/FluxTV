@@ -1,6 +1,7 @@
 # Secrets
 .env
 .env.*
+/env
 
 # Rust
 /target/
@@ -20,3 +21,9 @@ apps/windows/src-tauri/gen/schemas/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Xcode
+xcuserdata/
+DerivedData/
+*.xcuserstate
+build/
