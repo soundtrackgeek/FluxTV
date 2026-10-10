@@ -43,13 +43,17 @@ A fast IPTV player built on a **shared Rust core**, with native front ends per p
 - **Built-in libmpv player**, with bundled LGPL decoders for AC-3, E-AC-3, DTS, AAC and MP3 audio,
   H.264/HEVC/MPEG-2 video, and MPEG-TS, MP4 and MKV containers. Hardware video decoding is automatic
   where available. Includes audio/subtitle track selection, movie seeking, reconnect and stall recovery,
-  fullscreen and channel zapping; no Windows codec pack or external player is required.
+  fullscreen, a floating mini-player while browsing the guide or settings, and channel zapping;
+  no Windows codec pack or external player is required.
 - **External player** fallback (mpv or VLC, auto-detected, or a custom path) for anything the built-in player
   can't handle.
 - **Single-connection friendly**: switching channels closes the previous upstream connection *before* opening
   the next, so accounts limited to one connection don't get rejected.
 - Credentials never reach the web UI: playback goes through a local proxy on `127.0.0.1` with random per-session URLs.
 - Catalog and guide are cached in SQLite and refreshed in the background when stale (channels: 24 h, guide: 12 h).
+
+Native codec, control and packaging checks are recorded in
+[Windows player validation](docs/windows-player-validation.md).
 
 ### Keyboard shortcuts
 

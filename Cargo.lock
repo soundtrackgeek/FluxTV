@@ -1263,7 +1263,7 @@ dependencies = [
 
 [[package]]
 name = "fluxtv-core"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "flate2",
  "futures-util",
@@ -1282,7 +1282,7 @@ dependencies = [
 
 [[package]]
 name = "fluxtv-ffi"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "fluxtv-core",
  "futures-util",
@@ -1297,7 +1297,7 @@ dependencies = [
 
 [[package]]
 name = "fluxtv-windows"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "axum",
  "fluxtv-core",

@@ -59,6 +59,16 @@ export function useMpv(
   const updateBounds = useCallback(async () => {
     const rect = surface.current?.getBoundingClientRect();
     if (!rect || !rect.width || !rect.height) return;
+    // A transparent floating player still has the browsing page beneath it.
+    // Cut that page's painting out of the actual video rectangle as it moves.
+    const main = surface.current?.closest(".app")?.querySelector<HTMLElement>(".main");
+    if (main) {
+      const page = main.getBoundingClientRect();
+      for (const edge of ["left", "right", "top", "bottom"] as const) {
+        const origin = edge === "left" || edge === "right" ? page.left : page.top;
+        main.style.setProperty(`--native-video-${edge}`, `${rect[edge] - origin}px`);
+      }
+    }
     const clamp = (value: number) => Math.max(0, Math.min(1, value));
     await setVideoMarginRatio({
       left: clamp(rect.left / window.innerWidth), right: clamp(1 - rect.right / window.innerWidth),

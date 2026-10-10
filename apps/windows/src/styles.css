@@ -280,6 +280,16 @@ code {
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
   border: 1px solid var(--border);
 }
+/* Native video sits below the WebView, including the page behind the mini-player. */
+.app:has(.stage.mini .player.native-active) > .main {
+  clip-path: polygon(evenodd,
+    0 0, 100% 0, 100% 100%, 0 100%, 0 0,
+    var(--native-video-left) var(--native-video-top),
+    var(--native-video-right) var(--native-video-top),
+    var(--native-video-right) var(--native-video-bottom),
+    var(--native-video-left) var(--native-video-bottom),
+    var(--native-video-left) var(--native-video-top), 0 0);
+}
 
 /* ----- sidebar ----- */
 .sidebar {

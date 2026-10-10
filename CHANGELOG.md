@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.4.3] - 2026-10-10
+
+### Fixed
+
+- Reveal the native mini-player above guide and settings pages by clipping the page's painting
+  to exclude the measured video rectangle, including layout and window size changes.
+
 ## [0.4.2] - 2026-10-10
 
 ### Fixed
