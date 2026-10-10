@@ -236,6 +236,13 @@ code {
 .app.settings-mode {
   grid-template-columns: var(--sidebar) 1fr 0;
 }
+/* Native video is behind the WebView: opaque siblings must stop painting in fullscreen. */
+.app.is-fullscreen > .sidebar,
+.app.is-fullscreen > .main,
+.app.is-fullscreen .now-playing {
+  visibility: hidden;
+  pointer-events: none;
+}
 .main {
   min-width: 0;
   min-height: 0;

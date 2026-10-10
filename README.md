@@ -148,7 +148,7 @@ pnpm tauri build
 
 `pnpm setup:mpv` downloads pinned, SHA-256-verified LGPL builds of `libmpv-2.dll` and
 `libmpv-wrapper.dll` into the ignored `src-tauri/lib/` directory. The `pnpm tauri` command also
-runs setup automatically; subsequent runs verify and reuse the files. Setup needs internet access;
+runs setup automatically; subsequent runs verify and reuse the DLLs and license notices. Setup needs internet access;
 installed apps include the libraries and play offline/local media without downloading codecs.
 The default architecture follows Node.js (`x64` or `arm64`); when cross-building, run
 `pnpm setup:mpv x86_64` or `pnpm setup:mpv aarch64` and invoke `pnpm exec tauri build --target …`
@@ -157,6 +157,9 @@ to keep that selection. Direct Cargo builds require setup and a frontend build f
 Both installers bundle `lib/` beside FluxTV.exe; the build also copies DLLs for development runs.
 The player libraries remain replaceable. See [third-party notices](apps/windows/scripts/THIRD-PARTY.md)
 for licenses, source references and redistribution requirements.
+
+Native player state uses observed-property events. The IPC grants only the commands the player
+needs; see [player permissions](apps/windows/src-tauri/capabilities/README.md) before extending it.
 
 On first launch, add your provider. Catalogs, favorites and settings are stored in
 `%APPDATA%\com.fluxtv.app\fluxtv.db`. Source passwords and playlist/guide URLs are stored as generic

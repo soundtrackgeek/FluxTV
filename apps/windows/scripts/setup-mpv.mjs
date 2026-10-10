@@ -11,7 +11,17 @@ const manifest = JSON.parse(await readFile(new URL("./mpv-runtime.json", import.
 const arch = process.argv[2] ?? ({ x64: "x86_64", arm64: "aarch64" })[process.arch];
 if (!manifest[arch]) throw new Error("Use x86_64 or aarch64 (matching your Rust build target).");
 const dest = path.join(root, "src-tauri", "lib");
-const receipt = JSON.stringify({ recipe: 2, arch, assets: manifest[arch] }, null, 2);
+const notices = {
+  "THIRD-PARTY.md": "THIRD-PARTY.md",
+  "notices/mpv-ffmpeg-LICENSE.LGPL": "LICENSE.LGPL",
+  "notices/ffmpeg-LICENSE.LGPL": "COPYING.FFMPEG.LGPL",
+  "notices/mpv-Copyright": "COPYRIGHT.mpv",
+};
+const noticeHashes = {};
+for (const [name, source] of Object.entries(notices)) {
+  noticeHashes[name] = createHash("sha256").update(await readFile(new URL(`./${source}`, import.meta.url))).digest("hex");
+}
+const receipt = JSON.stringify({ recipe: 3, arch, assets: manifest[arch], notices: noticeHashes }, null, 2);
 try {
   const saved = JSON.parse(await readFile(path.join(dest, "runtime.json"), "utf8"));
   if (saved.receipt === receipt && Object.keys(saved.files).length >= 2) {
@@ -65,10 +75,11 @@ try {
   }
   await collect(extracted);
   if (!files["libmpv-2.dll"] || !files["libmpv-wrapper.dll"]) throw new Error("Runtime archives are missing DLLs.");
-  await copyFile(new URL("./THIRD-PARTY.md", import.meta.url), path.join(dest, "THIRD-PARTY.md"));
-  await copyFile(new URL("./LICENSE.LGPL", import.meta.url), path.join(dest, "notices", "mpv-ffmpeg-LICENSE.LGPL"));
-  await copyFile(new URL("./COPYING.FFMPEG.LGPL", import.meta.url), path.join(dest, "notices", "ffmpeg-LICENSE.LGPL"));
-  await copyFile(new URL("./COPYRIGHT.mpv", import.meta.url), path.join(dest, "notices", "mpv-Copyright"));
+  for (const [name, source] of Object.entries(notices)) {
+    await mkdir(path.dirname(path.join(dest, name)), { recursive: true });
+    await copyFile(new URL(`./${source}`, import.meta.url), path.join(dest, name));
+    files[name] = noticeHashes[name];
+  }
   await writeFile(path.join(dest, "runtime.json"), JSON.stringify({ receipt, files }, null, 2));
   console.log(`libmpv (${arch}) is ready in src-tauri/lib. Licenses and source references are included.`);
 } finally {

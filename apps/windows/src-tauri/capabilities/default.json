@@ -9,6 +9,10 @@
     "core:window:allow-is-fullscreen",
     "opener:default",
     "window-state:default",
-    "libmpv:default"
+    "libmpv:allow-init",
+    "libmpv:allow-destroy",
+    "libmpv:allow-command",
+    "libmpv:allow-set-property",
+    "libmpv:allow-set-video-margin-ratio"
   ]
 }

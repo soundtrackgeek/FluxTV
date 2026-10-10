@@ -148,13 +148,16 @@ async fn stream(
     // connection close, otherwise a 1-connection account rejects the new one.
     let token = CancellationToken::new();
     let previous = inner.active.lock().unwrap().replace(token.clone());
-    // libmpv can issue a new range request while a previous request is still
-    // connecting. Serialize connects and cancel pending requests as well as bodies.
-    let connection_guard = inner.connecting.lock().await;
-    if let Some(prev) = previous
-        && !prev.is_cancelled()
-    {
+    let needs_grace = previous.is_some_and(|prev| {
+        let active = !prev.is_cancelled();
         prev.cancel();
+        active
+    });
+    // libmpv can issue a new range request while a previous request is still
+    // connecting. Cancel before waiting for its connection lock, otherwise a
+    // provider that never sends headers also blocks the replacement request.
+    let connection_guard = inner.connecting.lock().await;
+    if needs_grace {
         tokio::time::sleep(Duration::from_millis(250)).await;
     }
     if token.is_cancelled() {
@@ -292,5 +295,46 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(response.status(), 410);
+    }
+
+    #[tokio::test]
+    async fn switching_cancels_pending_headers_before_waiting_for_the_connection_lock() {
+        let started = Arc::new(tokio::sync::Notify::new());
+        let signal = started.clone();
+        let upstream = serve(
+            Router::new()
+                .route(
+                    "/slow",
+                    get(move || {
+                        let signal = signal.clone();
+                        async move {
+                            signal.notify_one();
+                            tokio::time::sleep(Duration::from_secs(30)).await;
+                            "late response"
+                        }
+                    }),
+                )
+                .route("/next", get(|| async { "next channel" })),
+        )
+        .await;
+        let client = reqwest::Client::new();
+        let proxy = Proxy::start(client.clone()).await.unwrap();
+        let first = proxy.register(format!("{upstream}/slow"), "ts");
+        let next = proxy.register(format!("{upstream}/next"), "ts");
+        let first_client = client.clone();
+        let pending = tokio::spawn(async move { first_client.get(first).send().await.unwrap() });
+        tokio::time::timeout(Duration::from_secs(2), started.notified())
+            .await
+            .unwrap();
+        let response = tokio::time::timeout(Duration::from_secs(2), client.get(next).send())
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(response.text().await.unwrap(), "next channel");
+        let cancelled = tokio::time::timeout(Duration::from_secs(2), pending)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(cancelled.status(), 410);
     }
 }

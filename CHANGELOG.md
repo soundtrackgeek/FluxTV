@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.4.1] - 2026-10-10
+
+### Fixed
+
+- Keep the initial loading indicator visible until playback starts.
+- Hide opaque browsing panels while native video is fullscreen.
+- Cancel a pending upstream request before waiting for its connection lock, so channel switching
+  remains responsive when a provider never sends headers; covered by a real HTTP regression test.
+- Restrict libmpv IPC to the operations FluxTV uses, excluding the upstream wrapper's unsafe
+  synchronous node getter. Player state uses observed-property events.
+- Verify bundled license notices along with DLLs when reusing the player runtime.
+
 ## [0.4.0] - 2026-10-10
 
 ### Added

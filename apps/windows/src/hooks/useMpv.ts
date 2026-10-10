@@ -81,6 +81,7 @@ export function useMpv(
     let paused = false;
     let ended = false;
     let failed = false;
+    let buffering = false;
     let lastPosition = -1;
     let lastAdvance = Date.now();
     let healthySince = Date.now();
@@ -102,6 +103,7 @@ export function useMpv(
       if (closed) return;
       ended = false;
       failed = false;
+      buffering = false;
       lastPosition = -1;
       lastAdvance = healthySince = Date.now();
       await setProperty("pause", false);
@@ -159,8 +161,14 @@ export function useMpv(
             if (ended) setState((s) => ({ ...s, status: "ended", paused: true }));
           } else if (name === "paused-for-cache") {
             if (!ended && !failed && !retryPending) {
+              const wasBuffering = buffering;
+              buffering = data === true;
               if (data === true) healthySince = Date.now();
-              setState((s) => ({ ...s, status: data ? "loading" : s.status === "loading" ? "playing" : s.status }));
+              // The initial false observation precedes the first decoded frame.
+              // Only playback-restart or recovery from real buffering can hide loading.
+              if (buffering || wasBuffering) {
+                setState((s) => ({ ...s, status: buffering ? "loading" : "playing" }));
+              }
             }
           } else if (name === "track-list") {
             setState((s) => ({ ...s, tracks: Array.isArray(data) ? data as Track[] : [] }));

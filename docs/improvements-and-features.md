@@ -57,8 +57,8 @@ an allowlist of UI keys.
 ### Playback
 
 #### 4. Play AC-3 and E-AC-3 (and more) in the Windows built-in player
-**Status:** libmpv integration implemented in 0.4.0 (2026-10-10), awaiting native Windows playback
-verification. Bundled LGPL runtime, hardware decoding, audio/subtitle selection, movie seeking and
+**Status:** libmpv integration implemented in 0.4.0, refined in 0.4.1 (2026-10-10), awaiting final native
+Windows control and packaging verification. Bundled LGPL runtime, hardware decoding, audio/subtitle selection, movie seeking and
 bounded reconnects replace WebView2 decoding. The notes below describe the original review baseline.
 
 **Today:** The built-in player is mpegts.js on Media Source Extensions. WebView2 cannot decode Dolby
