@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [0.4.3] - 2026-10-10
 
+### Added
+
+- Native Windows 11 player validation report covering codec decoding, controls, outage recovery
+  and bundled resources; completed the Windows built-in codec playback improvement.
+
 ### Fixed
 
 - Reveal the native mini-player above guide and settings pages by clipping the page's painting
