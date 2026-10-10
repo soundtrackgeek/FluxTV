@@ -7,9 +7,10 @@ import { useDebounced } from "./util";
 export async function playChannel(channel: Channel, playlist?: Channel[]) {
   const { sourceId, setPlaying, showToast } = useApp.getState();
   if (!sourceId) return;
+  const requestedAt = performance.now();
   try {
     const info = await api.play(sourceId, channel.kind, channel.id);
-    setPlaying(info, playlist);
+    setPlaying({ ...info, requestedAt }, playlist);
   } catch (e) {
     showToast(`Could not start ${channel.name}: ${errorMessage(e)}`, "error");
   }

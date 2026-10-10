@@ -34,8 +34,8 @@ use crate::types::{PlaybackStatus, StreamState};
 const KEEP_SEGMENTS: usize = 12;
 /// Segments listed in the live playlist.
 const PLAYLIST_WINDOW: usize = 6;
-/// AVPlayer starts three target durations from the live edge; wait for that much.
-const START_SEGMENTS: usize = 3;
+/// Publish as soon as two independently decodable startup segments exist.
+const START_SEGMENTS: usize = 2;
 const START_TIMEOUT: Duration = Duration::from_secs(25);
 /// Reconnect when the upstream sends nothing for this long.
 const READ_STALL: Duration = Duration::from_secs(15);
@@ -934,22 +934,32 @@ mod tests {
     }
 
     /// A fake provider that serves an endless 25 fps MPEG-TS stream (one packet group per frame).
-    async fn fake_provider() -> String {
+    async fn fake_provider(gop: u64, gate: Option<Arc<Notify>>) -> String {
         let listener = TcpListener::bind(("127.0.0.1", 0)).await.unwrap();
         let addr = listener.local_addr().unwrap();
         tokio::spawn(async move {
             loop {
                 let (mut s, _) = listener.accept().await.unwrap();
+                let gate = gate.clone();
                 tokio::spawn(async move {
                     let mut buf = [0u8; 1024];
                     let _ = tokio::io::AsyncReadExt::read(&mut s, &mut buf).await;
-                    let _ = s.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: video/mp2t\r\n\r\n").await;
+                    let _ = s
+                        .write_all(b"HTTP/1.1 200 OK\r\nContent-Type: video/mp2t\r\n\r\n")
+                        .await;
                     let mut frame = 0u64;
                     loop {
-                        let chunk = crate::media::tests::ts_frame(frame);
+                        let chunk = ts_frame_with_gop(frame, gop);
                         frame += 1;
                         if s.write_all(&chunk).await.is_err() {
                             return;
+                        }
+                        // Hold the provider after exactly two closed segments. A client
+                        // must receive its playlist without needing another upstream byte.
+                        if frame == 2 * gop + 1
+                            && let Some(gate) = &gate
+                        {
+                            gate.notified().await;
                         }
                         // Send faster than real time so the test doesn't take seconds.
                         if frame.is_multiple_of(25) {
@@ -962,9 +972,13 @@ mod tests {
         format!("http://{addr}/live/u/p/1.ts")
     }
 
-    pub(crate) fn ts_frame(frame: u64) -> Vec<u8> {
+    fn ts_frame_with_gop(frame: u64, gop: u64) -> Vec<u8> {
         fn packet(pid: u16, pusi: bool, rai: bool, payload: &[u8], cc: u8) -> Vec<u8> {
-            let mut p = vec![0x47, (if pusi { 0x40 } else { 0 }) | (pid >> 8) as u8, pid as u8];
+            let mut p = vec![
+                0x47,
+                (if pusi { 0x40 } else { 0 }) | (pid >> 8) as u8,
+                pid as u8,
+            ];
             let body = &payload[..payload.len().min(if rai { 182 } else { 184 })];
             if rai || body.len() < 184 {
                 let af = 183 - body.len();
@@ -989,12 +1003,20 @@ mod tests {
         let cc = (frame & 0x0f) as u8;
         let mut out = Vec::new();
         if frame.is_multiple_of(25) {
-            out.extend(packet(0, true, false, &section(&[0, 0xb0, 13, 0, 1, 0xc1, 0, 0, 0, 1, 0xf0, 0]), cc));
-            let pmt = [0x02, 0xb0, 18, 0, 1, 0xc1, 0, 0, 0xe1, 0, 0xf0, 0, 0x1b, 0xe1, 0, 0xf0, 0];
+            out.extend(packet(
+                0,
+                true,
+                false,
+                &section(&[0, 0xb0, 13, 0, 1, 0xc1, 0, 0, 0, 1, 0xf0, 0]),
+                cc,
+            ));
+            let pmt = [
+                0x02, 0xb0, 18, 0, 1, 0xc1, 0, 0, 0xe1, 0, 0xf0, 0, 0x1b, 0xe1, 0, 0xf0, 0,
+            ];
             out.extend(packet(0x1000, true, false, &section(&pmt), cc));
         }
         let pts = 90_000 + frame * 3600;
-        let key = frame.is_multiple_of(50);
+        let key = frame.is_multiple_of(gop);
         let mut pes = vec![0, 0, 1, 0xe0, 0, 0, 0x80, 0x80, 5];
         pes.push(0x21 | (((pts >> 30) & 7) as u8) << 1);
         pes.push((pts >> 22) as u8);
@@ -1009,14 +1031,19 @@ mod tests {
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn serves_live_hls_from_ts_upstream() {
-        let upstream = fake_provider().await;
-        let server = MediaServer::start(reqwest::Client::new(), Handle::current()).await.unwrap();
+        let upstream = fake_provider(50, None).await;
+        let server = MediaServer::start(reqwest::Client::new(), Handle::current())
+            .await
+            .unwrap();
         let url = server.start_live(upstream);
         let (addr, path) = url.trim_start_matches("http://").split_once('/').unwrap();
         let (status, body) = get(addr, &format!("/{path}")).await;
         let playlist = String::from_utf8(body).unwrap();
         assert_eq!(status, 200, "{playlist}");
-        assert!(playlist.starts_with("#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:2\n"), "{playlist}");
+        assert!(
+            playlist.starts_with("#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:2\n"),
+            "{playlist}"
+        );
         let first = playlist.lines().find(|l| l.ends_with(".ts")).unwrap();
         let (status, seg) = get(addr, &format!("/{}", path.replace("index.m3u8", first))).await;
         assert_eq!(status, 200);
@@ -1029,5 +1056,32 @@ mod tests {
         server.stop();
         let (status, _) = get(addr, &format!("/{path}")).await;
         assert_eq!(status, 410);
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn startup_playlist_returns_with_only_two_short_segments() {
+        let gate = Arc::new(Notify::new());
+        let upstream = fake_provider(25, Some(gate.clone())).await;
+        let server = MediaServer::start(reqwest::Client::new(), Handle::current())
+            .await
+            .unwrap();
+        let url = server.start_live(upstream);
+        let (addr, path) = url.trim_start_matches("http://").split_once('/').unwrap();
+        let (status, body) =
+            tokio::time::timeout(Duration::from_secs(2), get(addr, &format!("/{path}")))
+                .await
+                .expect("playlist must not wait for a third segment or the startup timeout");
+        let playlist = String::from_utf8(body).unwrap();
+        assert_eq!(status, 200, "{playlist}");
+        assert!(playlist.contains("#EXT-X-TARGETDURATION:2\n"), "{playlist}");
+        assert_eq!(playlist.matches("#EXTINF:1.000,").count(), 2, "{playlist}");
+        for file in playlist.lines().filter(|l| l.ends_with(".ts")) {
+            let (status, data) = get(addr, &format!("/{}", path.replace("index.m3u8", file))).await;
+            assert_eq!(status, 200);
+            assert_eq!(data[0], 0x47);
+            assert_eq!(data.len() % TS_PACKET, 0);
+        }
+        gate.notify_one();
+        server.stop();
     }
 }

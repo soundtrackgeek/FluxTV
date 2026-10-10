@@ -80,7 +80,7 @@ channels carry AC-3 audio.
 - **Browser-only option:** decode in WASM with [@mediabunny/ac3](https://mediabunny.dev/guide/extensions/ac3).
   This is more work to synchronize with MSE video.
 
-#### 5. Start channels faster on both platforms
+#### 5. Start channels faster on both platforms - DONE
 **Today:** On Apple, the media server waits for `START_SEGMENTS = 3` segments of about 2 s each
 ([media.rs:38](../crates/fluxtv-ffi/src/media.rs#L38)) after a 300 ms switch grace period, and AVPlayer
 starts three target durations from the live edge. That means roughly 6 s or more of buffering before the
@@ -95,6 +95,13 @@ first picture. On Windows, mpegts.js runs with a 384 KB stash buffer
 - On Windows, lower `stashInitialSize` for the first second.
 
 Add a "time to first frame" log line on both platforms so each change can be measured.
+
+**Implemented (0.5.0):** Apple publishes after two segments, cuts the first three at each keyframe,
+and uses a one-second AVPlayer forward buffer without the automatic startup wait. The local playlist
+is prepared before AVPlayer opens it. Windows now uses libmpv (improvement 4), so its initial cache
+wait and analysis budget are reduced instead of tuning the former mpegts.js stash. Both players log
+startup timing once per playback attempt. See [channel startup validation](channel-startup-validation.md)
+for measurements, regression checks and device coverage.
 
 #### 6. Let the user choose the stream format (TS or HLS)
 **Today:** Xtream live URLs are always `.ts` ([xtream.rs:185](../crates/fluxtv-core/src/xtream.rs#L185)),

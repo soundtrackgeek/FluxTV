@@ -83,6 +83,8 @@ export interface AccountInfo {
 export interface PlayInfo {
   url: string;
   channel: Channel;
+  /** Monotonic UI timestamp before preparing playback; never sent to the provider. */
+  requestedAt?: number;
 }
 
 export interface ExternalPlayer {

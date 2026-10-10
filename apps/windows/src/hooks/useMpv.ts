@@ -52,6 +52,7 @@ export function useMpv(
   const [state, setState] = useState(EMPTY);
   const [ready, setReady] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const initializationRetry = useRef<{ url: string; startedAt: number } | null>(null);
   const controls = useRef<{ retry: () => void; run: (fn: () => Promise<void>) => void } | null>(null);
   const audio = useRef({ volume, muted });
   audio.current = { volume, muted };
@@ -96,6 +97,10 @@ export function useMpv(
     let lastAdvance = Date.now();
     let healthySince = Date.now();
     let lastPositionRender = 0;
+    let startedAt = initializationRetry.current?.url === url
+      ? initializationRetry.current.startedAt : playing?.requestedAt ?? performance.now();
+    let firstFrameLogged = false;
+    let loadStarted = false;
 
     const fail = (message: string) => {
       if (closed) return;
@@ -116,6 +121,14 @@ export function useMpv(
       buffering = false;
       lastPosition = -1;
       lastAdvance = healthySince = Date.now();
+      loadStarted = true;
+      firstFrameLogged = false;
+      // Use a short startup wait; after the first frame normal rebuffering resumes.
+      if (live) {
+        await setProperty("cache-pause-wait", 0.25);
+        // An unusual stream may need more probing. Reconnects allow normal analysis.
+        await setProperty("demuxer-lavf-analyzeduration", retries > 0 ? 0 : 1);
+      }
       await setProperty("pause", false);
       await command("loadfile", [url, "replace"]);
     };
@@ -127,6 +140,7 @@ export function useMpv(
         return;
       }
       retryPending = true;
+      startedAt = performance.now();
       retries += 1;
       setState((s) => ({ ...s, status: manual ? "loading" : "reconnecting", error: null }));
       retryTimer = window.setTimeout(() => {
@@ -143,6 +157,12 @@ export function useMpv(
       unlisten = await listenEvents((event) => {
         if (closed) return;
         if (event.event === "playback-restart" && !ended && !failed) {
+          if (loadStarted && !firstFrameLogged) {
+            firstFrameLogged = true;
+            const milliseconds = Math.round(performance.now() - startedAt);
+            console.info(`[FluxTV] time to first frame: ${milliseconds} ms (Windows, playback-restart)`);
+            if (live) run(() => setProperty("cache-pause-wait", 1));
+          }
           setState((s) => ({ ...s, status: "playing", error: null }));
         } else if (event.event === "end-file") {
           if (event.reason === "stop" || event.reason === "quit" || event.reason === "redirect") return;
@@ -204,6 +224,10 @@ export function useMpv(
           "sub-use-margins": "no", "sub-scale-with-window": "no",
           vo: "gpu-next", hwdec: "auto-safe", idle: "yes", "force-window": "yes", "keep-open": live ? "no" : "yes",
           cache: "yes", "cache-secs": 3, "demuxer-max-bytes": 64 * 1024 * 1024,
+          ...(live ? {
+            "cache-pause-initial": "yes", "cache-pause-wait": 0.25,
+            "demuxer-lavf-analyzeduration": 1,
+          } : {}),
           volume: audio.current.volume * 100, mute: audio.current.muted,
         },
         observedProperties: [
@@ -268,7 +292,13 @@ export function useMpv(
 
   return {
     ...state, ready,
-    retry: () => ready ? controls.current?.retry() : setAttempt((n) => n + 1),
+    retry: () => {
+      if (ready) controls.current?.retry();
+      else {
+        initializationRetry.current = url ? { url, startedAt: performance.now() } : null;
+        setAttempt((n) => n + 1);
+      }
+    },
     togglePause: () => controls.current?.run(async () => {
       if (state.status === "ended") {
         await command("seek", [0, "absolute"]);

@@ -4,6 +4,27 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-10-10
+
+### Added
+
+- Time-to-first-frame diagnostics on Apple and Windows, with a channel startup validation report.
+- Regression coverage for short startup segments, the transition to normal segments, audio-only
+  streams, long keyframe intervals, reconnects, and serving a playlist with just two segments.
+
+### Changed
+
+- Apple live playback opens after two keyframe-aligned startup segments, then returns to normal
+  segment lengths. AVPlayer uses a one-second forward buffer and starts without its automatic wait.
+- Windows live playback uses a shorter initial cache wait and stream analysis budget; normal
+  rebuffering resumes after playback starts, and reconnects use normal analysis.
+- Workspace, Windows app and Apple app version 0.5.0.
+
+### Fixed
+
+- Prepare local live HLS playlists before AVPlayer opens them, avoiding an unresolved player item
+  when the first playlist response is delayed by longer keyframe intervals.
+
 ## [0.4.3] - 2026-10-10
 
 ### Added

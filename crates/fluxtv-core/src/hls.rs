@@ -9,9 +9,8 @@
 //! - DVB-style AC-3 / E-AC-3 streams (stream type `0x06` + descriptor) are relabelled with
 //!   their ATSC stream types (`0x81` / `0x87`), which is what Apple's HLS demuxer expects.
 //!
-//! Segment length adapts to the stream's GOP: one or more whole GOPs of roughly two seconds,
-//! which keeps start-up and live latency low (AVPlayer starts three target durations from
-//! the live edge).
+//! The first few segments contain one GOP each so a player can start quickly. Later segments
+//! group short GOPs into roughly two seconds. The advertised target covers both phases.
 
 use std::fmt::Write as _;
 
@@ -25,6 +24,8 @@ const MIN_SEGMENT_SECS: f64 = 1.5;
 const MAX_TARGET_SECS: f64 = 12.0;
 /// Target used before the GOP length is known (and for audio-only streams).
 const DEFAULT_TARGET_SECS: f64 = 2.0;
+const STARTUP_SEGMENTS: usize = 3;
+const STARTUP_AUDIO_SECS: f64 = 1.0;
 
 /// One finished HLS media segment.
 #[derive(Clone, Debug)]
@@ -94,7 +95,7 @@ pub struct Segmenter {
     current: Vec<u8>,
     current_start: Option<u64>,
     current_last: Option<u64>,
-    first_gop: Option<f64>,
+    startup_remaining: usize,
     target: Option<f64>,
     min_cut: f64,
     pending_discontinuity: bool,
@@ -123,7 +124,7 @@ impl Segmenter {
             current: Vec::new(),
             current_start: None,
             current_last: None,
-            first_gop: None,
+            startup_remaining: STARTUP_SEGMENTS,
             target: None,
             min_cut: MIN_SEGMENT_SECS,
             pending_discontinuity: false,
@@ -161,6 +162,7 @@ impl Segmenter {
         self.pmt_out.clear();
         self.pmt_patch = None;
         self.timing = None;
+        self.startup_remaining = STARTUP_SEGMENTS;
         self.pending_discontinuity = true;
     }
 
@@ -289,6 +291,7 @@ impl Segmenter {
                 data: std::mem::take(&mut self.current),
             });
             self.next_sequence += 1;
+            self.startup_remaining = self.startup_remaining.saturating_sub(1);
         }
         self.current.clear();
         self.current_start = None;
@@ -324,15 +327,19 @@ impl Segmenter {
             if audio_only {
                 self.set_target(DEFAULT_TARGET_SECS, DEFAULT_TARGET_SECS);
             } else if key && secs > 0.0 {
-                // First keyframe interval: group short GOPs so segments reach ~1.5 s.
-                self.first_gop = Some(secs);
+                // Advertise the steady-state target even during short startup segments.
+                // The target must not grow just because startup ends.
                 let gops = (MIN_SEGMENT_SECS / secs).ceil().max(1.0);
                 let segment = gops * secs;
                 self.set_target((segment - 0.05).ceil().clamp(DEFAULT_TARGET_SECS, MAX_TARGET_SECS), segment * 0.9);
             }
         }
 
-        let cut = match self.target {
+        let startup_cut = self.startup_remaining > 0
+            && key
+            && secs > 0.0
+            && (!audio_only || secs >= STARTUP_AUDIO_SECS);
+        let cut = startup_cut || match self.target {
             Some(target) => (key && secs >= self.min_cut) || secs >= target + 0.45,
             None => secs >= MAX_TARGET_SECS,
         };
@@ -861,14 +868,98 @@ mod tests {
 
     #[test]
     fn groups_short_gops_and_detects_idr_without_rai() {
-        // 0.4 s GOPs, no random-access flag: keyframes found by NAL type, grouped to 1.6 s.
+        // Startup uses individual 0.4 s GOPs, then groups them to 1.6 s. No RAI:
+        // keyframes must be found by NAL type, including across input chunk boundaries.
         let data = stream(10, 10, false, 0);
         let (s, segs) = segment_all(&data, 188 * 3 + 17);
         assert_eq!(s.target_duration(), Some(2));
         assert!(segs.len() >= 5);
-        for seg in &segs {
-            assert!((seg.duration - 1.6).abs() < 1e-9, "duration {}", seg.duration);
+        for seg in &segs[..STARTUP_SEGMENTS] {
+            assert!(
+                (seg.duration - 0.4).abs() < 1e-9,
+                "duration {}",
+                seg.duration
+            );
         }
+        for seg in &segs[STARTUP_SEGMENTS..] {
+            assert!(
+                (seg.duration - 1.6).abs() < 1e-9,
+                "duration {}",
+                seg.duration
+            );
+        }
+    }
+
+    #[test]
+    fn one_second_startup_then_two_second_segments_with_stable_target() {
+        let mut s = Segmenter::new();
+        let mut segments = Vec::new();
+        for chunk in stream(10, 25, true, 0).chunks(1316) {
+            s.push(chunk);
+            let finished = s.take_segments();
+            if !finished.is_empty() {
+                assert_eq!(
+                    s.target_duration(),
+                    Some(2),
+                    "target covers startup and steady playback"
+                );
+                segments.extend(finished);
+            }
+        }
+        let durations: Vec<_> = segments.iter().map(|s| s.duration).collect();
+        assert_eq!(durations, [1.0, 1.0, 1.0, 2.0, 2.0, 2.0]);
+        for (i, segment) in segments.iter().enumerate() {
+            assert_eq!(segment.sequence, i as u64);
+            assert!(!segment.discontinuity);
+            // Each segment has fresh PSI and starts with a keyframe PES.
+            let payload = payload_of(&segment.data[2 * TS_PACKET..3 * TS_PACKET]);
+            let (_, es_start) = pes_pts(payload).unwrap();
+            assert!(has_keyframe_nal(&payload[es_start..], EsKind::H264));
+        }
+    }
+
+    #[test]
+    fn long_gops_stay_decodable_and_reconnect_restarts_short_segments() {
+        let (s, segments) = segment_all(&stream(13, 100, true, 0), 4096);
+        assert_eq!(s.target_duration(), Some(4));
+        assert!(segments.iter().all(|s| s.duration == 4.0));
+
+        let mut s = Segmenter::new();
+        s.push(&stream(8, 25, true, PTS_MASK - 90_000));
+        let before = s.take_segments();
+        s.discontinuity();
+        s.push(&stream(8, 25, true, 900_000));
+        let after = s.take_segments();
+        assert_eq!(after[0].sequence, before.last().unwrap().sequence + 1);
+        assert!(after[0].discontinuity);
+        assert_eq!(
+            after[..3].iter().map(|s| s.duration).collect::<Vec<_>>(),
+            [1.0; 3]
+        );
+        assert!(
+            after[3..]
+                .iter()
+                .all(|s| s.duration == 2.0 && !s.discontinuity)
+        );
+    }
+
+    #[test]
+    fn audio_only_startup_is_one_second_then_normal_buffering() {
+        let mut m = Mux::new();
+        m.pat();
+        let pmt = [
+            0x02, 0xb0, 18, 0, 1, 0xc1, 0, 0, 0xe1, 1, 0xf0, 0, 0x0f, 0xe1, 1, 0xf0, 0,
+        ];
+        m.packet(PMT, true, false, &Mux::section(&pmt));
+        for frame in 0..201 {
+            m.pes(AUDIO, frame * 3600, false, false);
+        }
+        let (s, segments) = segment_all(&m.out, 999);
+        assert_eq!(s.target_duration(), Some(2));
+        assert_eq!(
+            segments.iter().map(|s| s.duration).collect::<Vec<_>>(),
+            [1.0, 1.0, 1.0, 2.0, 2.0]
+        );
     }
 
     #[test]

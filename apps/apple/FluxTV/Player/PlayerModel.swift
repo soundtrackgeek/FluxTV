@@ -1,6 +1,7 @@
 import AVFoundation
 import AVKit
 import Observation
+import OSLog
 import SwiftUI
 
 /// Playback state shared by the iOS and tvOS player screens.
@@ -27,6 +28,8 @@ final class PlayerModel: NSObject {
     @ObservationIgnored weak var app: AppModel?
     @ObservationIgnored private var statusTask: Task<Void, Never>?
     @ObservationIgnored private var itemObservation: NSKeyValueObservation?
+    @ObservationIgnored private var displayObservation: NSKeyValueObservation?
+    @ObservationIgnored private static let logger = Logger(subsystem: "com.soundtrackgeek.fluxtv", category: "Playback")
     @ObservationIgnored private var playToken = 0
 
     var isLive: Bool { channel?.kind == .live }
@@ -111,6 +114,7 @@ final class PlayerModel: NSObject {
         statusTask?.cancel()
         statusTask = nil
         itemObservation = nil
+        displayObservation = nil
         player.pause()
         player.replaceCurrentItem(with: nil)
         channel = nil
@@ -134,12 +138,17 @@ final class PlayerModel: NSObject {
         guard let app else { return }
         playToken += 1
         let token = playToken
+        let startedAt = ProcessInfo.processInfo.systemUptime
+        itemObservation = nil
+        displayObservation = nil
         self.channel = channel
         nowNext = nil
         status = nil
         errorMessage = nil
         isLoading = true
         player.pause()
+        // Clear the previous picture and its display-ready state before measuring a zap.
+        player.replaceCurrentItem(with: nil)
         #if os(tvOS)
         updateTransportBar()
         #endif
@@ -150,11 +159,27 @@ final class PlayerModel: NSObject {
                     try $0.play(sourceId: sourceId, kind: channel.kind, channelId: channel.id)
                 }
                 guard token == playToken, let url = URL(string: playback.url) else { return }
+                // Let the local server prepare its first segments before AVPlayer opens
+                // the playlist. A delayed initial response can leave AVPlayer unresolved.
+                // Direct provider HLS URLs keep their normal single player request.
+                if playback.live, url.host == "127.0.0.1", url.path.hasPrefix("/live/"), url.pathExtension == "m3u8" {
+                    let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 30)
+                    let (_, response) = try await URLSession.shared.data(for: request)
+                    guard token == playToken else { return }
+                    guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+                        isLoading = false
+                        await reportFailure(nil)
+                        return
+                    }
+                }
                 try? AVAudioSession.sharedInstance().setActive(true)
                 let item = AVPlayerItem(url: url)
+                self.player.automaticallyWaitsToMinimizeStalling = !playback.live
+                item.preferredForwardBufferDuration = playback.live ? 1 : 0
                 item.externalMetadata = metadata(for: channel, programme: nil)
                 observe(item, token: token)
                 player.replaceCurrentItem(with: item)
+                observeFirstFrame(item, token: token, startedAt: startedAt)
                 player.play()
                 startStatusUpdates(token: token)
             } catch {
@@ -180,6 +205,21 @@ final class PlayerModel: NSObject {
                 default:
                     break
                 }
+            }
+        }
+    }
+
+    private func observeFirstFrame(_ item: AVPlayerItem, token: Int, startedAt: TimeInterval) {
+        displayObservation = controller.observe(\.isReadyForDisplay, options: [.initial, .new]) { [weak self] _, change in
+            guard change.newValue == true else { return }
+            Task { @MainActor [weak self] in
+                guard let self, self.displayObservation != nil, token == self.playToken, self.player.currentItem === item,
+                      self.controller.isReadyForDisplay, item.status == .readyToPlay
+                else { return }
+                let milliseconds = Int((ProcessInfo.processInfo.systemUptime - startedAt) * 1000)
+                Self.logger.info("time to first frame: \(milliseconds, privacy: .public) ms (Apple)")
+                self.isLoading = false
+                self.displayObservation = nil
             }
         }
     }

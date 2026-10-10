@@ -49,6 +49,8 @@ A fast IPTV player built on a **shared Rust core**, with native front ends per p
   can't handle.
 - **Single-connection friendly**: switching channels closes the previous upstream connection *before* opening
   the next, so accounts limited to one connection don't get rejected.
+- **Faster live startup**: libmpv uses a short initial cache wait and one second of stream analysis,
+  then restores its normal rebuffering wait. Reconnects allow normal analysis for unusual streams.
 - Credentials never reach the web UI: playback goes through a local proxy on `127.0.0.1` with random per-session URLs.
 - Catalog and guide are cached in SQLite and refreshed in the background when stale (channels: 24 h, guide: 12 h).
 
@@ -82,6 +84,9 @@ AVPlayer, so they get the system player UI, Picture in Picture, AirPlay and the 
   releases the upstream connection after 30 seconds and resumes transparently.
 - **Single-connection friendly**: the previous upstream connection is closed before the next opens,
   so channel zapping works on accounts limited to one connection.
+- **Faster live startup**: the first three local HLS segments each contain one keyframe interval;
+  playback can open after two segments, with a small AVPlayer forward buffer. Later segments return
+  to about two seconds. Longer provider keyframe intervals still take longer to start.
 - **Movies** with seeking: MP4 files are passed through; movies stored as MPEG-TS are served as a
   seekable HLS VOD playlist. Matroska (MKV) movies are not playable yet and say so.
 - **Search** (same ranking as Windows), **TV guide grid**, programme details and "watch" from the guide.
@@ -259,6 +264,13 @@ On Windows, prepare the runtime and frontend first (`cd apps/windows`, `pnpm set
 Manager test with synthetic credentials; it checks saving, reopening, editing and deleting a source.
 The shared core tests also cover legacy migration, database scrubbing and vault failure recovery.
 Windows proxy tests cover movie byte ranges and cancellation while awaiting upstream headers.
+
+Playback attempts log `time to first frame` in milliseconds, starting from the channel selection
+or retry. On Apple, filter Console/Xcode logs by subsystem `com.soundtrackgeek.fluxtv`, category
+`Playback`; the signal is AVKit's display readiness. In Windows development builds, open the WebView
+console with `F12`; the signal is libmpv's first `playback-restart`, a playback-start proxy.
+Logs contain timing and platform only. Measurements and test coverage are recorded in
+[channel startup validation](docs/channel-startup-validation.md).
 
 Smoke-test the core against a real Xtream provider. Put credentials in a `.env` file at the repository root
 (it is git-ignored):
