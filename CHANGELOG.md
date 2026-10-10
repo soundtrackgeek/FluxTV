@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.4.2] - 2026-10-10
+
+### Fixed
+
+- Keep plain-text subtitles inside the embedded video area and scale them with the video,
+  so browsing panels cannot hide them outside fullscreen.
+- Run runtime setup explicitly in the Tauri package script, including pnpm configurations that
+  disable automatic pre/post hooks.
+
 ## [0.4.1] - 2026-10-10
 
 ### Fixed

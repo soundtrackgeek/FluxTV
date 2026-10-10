@@ -190,6 +190,8 @@ export function useMpv(
         initialOptions: {
           config: "no", "load-scripts": "no", ytdl: "no", osc: "no", terminal: "no",
           "input-default-bindings": "no", "input-vo-keyboard": "no",
+          // The mpv window spans the app; keep subtitles inside the boxed video.
+          "sub-use-margins": "no", "sub-scale-with-window": "no",
           vo: "gpu-next", hwdec: "auto-safe", idle: "yes", "force-window": "yes", "keep-open": live ? "no" : "yes",
           cache: "yes", "cache-secs": 3, "demuxer-max-bytes": 64 * 1024 * 1024,
           volume: audio.current.volume * 100, mute: audio.current.muted,

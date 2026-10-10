@@ -1,15 +1,14 @@
 {
   "name": "fluxtv-windows",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.4.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "setup:mpv": "node scripts/setup-mpv.mjs",
-    "pretauri": "node scripts/setup-mpv.mjs",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "node scripts/setup-mpv.mjs && tauri"
   },
   "dependencies": {
     "@tanstack/react-virtual": "^3.14.13",
