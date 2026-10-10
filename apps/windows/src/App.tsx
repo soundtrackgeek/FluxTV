@@ -85,7 +85,7 @@ export default function App() {
     <div className={cx("app", guideMode && "guide-mode", screen === "settings" && "settings-mode", fullscreen && "is-fullscreen")}>
       <Sidebar />
       <main className="main">{screen === "settings" ? <Settings /> : <Browse />}</main>
-      <aside className={cx("stage", !playing && "idle", (guideMode || screen === "settings") && playing && "mini")}>
+      <aside className={cx("stage", playing && "has-native-video", !playing && "idle", (guideMode || screen === "settings") && playing && "mini")}>
         <Player />
         {!guideMode && screen === "browse" && <NowPlaying />}
       </aside>

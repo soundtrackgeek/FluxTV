@@ -82,7 +82,6 @@ export interface AccountInfo {
 
 export interface PlayInfo {
   url: string;
-  mode: "mpegts" | "native";
   channel: Channel;
 }
 

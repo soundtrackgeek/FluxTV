@@ -29,6 +29,7 @@ tokio-util = "0.7.19"
 log = "0.4.34"
 uuid = { version = "1.26.1", features = ["v4"] }
 tauri-plugin-window-state = "2.5.0"
+tauri-plugin-libmpv = "=0.3.2"
 
 [target.'cfg(windows)'.dependencies]
 keyring = { version = "3.6.3", default-features = false, features = ["windows-native"] }

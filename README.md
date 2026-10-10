@@ -40,8 +40,10 @@ A fast IPTV player built on a **shared Rust core**, with native front ends per p
   full guide grid (channels × 24 h timeline) for any category or your favorites.
   Channels without an EPG id are matched to the guide by name (thousands of extra channels get guide data).
 - **Favorites** and **recently watched**, preserved across playlist refreshes.
-- **Built-in player** for MPEG-TS live streams (H.264/HEVC video; AAC, MP3, AC-3 and E-AC-3 audio where Windows
-  provides decoders), with automatic reconnect and stall recovery, fullscreen and channel zapping.
+- **Built-in libmpv player**, with bundled LGPL decoders for AC-3, E-AC-3, DTS, AAC and MP3 audio,
+  H.264/HEVC/MPEG-2 video, and MPEG-TS, MP4 and MKV containers. Hardware video decoding is automatic
+  where available. Includes audio/subtitle track selection, movie seeking, reconnect and stall recovery,
+  fullscreen and channel zapping; no Windows codec pack or external player is required.
 - **External player** fallback (mpv or VLC, auto-detected, or a custom path) for anything the built-in player
   can't handle.
 - **Single-connection friendly**: switching channels closes the previous upstream connection *before* opening
@@ -108,6 +110,8 @@ apps/windows/              Windows app (Tauri 2 + React + TypeScript)
   src-tauri/src/proxy.rs   Local stream proxy (single upstream connection)
   src-tauri/src/commands.rs Tauri commands used by the UI
   src-tauri/src/external.rs mpv / VLC detection and launch
+  src/hooks/useMpv.ts       Native player lifecycle, events, controls and video layout
+  scripts/setup-mpv.mjs     Pinned LGPL runtime download and checksum verification
 apps/apple/                iOS / iPadOS / tvOS app (SwiftUI)
   FluxTV.xcodeproj         Targets "FluxTV iOS", "FluxTV tvOS" and FluxTVTests
   FluxTV/App/              App model, Keychain account store
@@ -124,13 +128,14 @@ apps/apple/                iOS / iPadOS / tvOS app (SwiftUI)
 Prerequisites:
 
 - [Rust](https://rustup.rs) (stable, MSVC toolchain) and the Visual Studio C++ Build Tools
-- [Node.js](https://nodejs.org) 20+ and [pnpm](https://pnpm.io)
+- [Node.js](https://nodejs.org) 22.12+ and [pnpm](https://pnpm.io) 8 (the lockfile uses format 6)
 - WebView2 runtime (preinstalled on Windows 11)
 - Optional: [mpv](https://mpv.io) or [VLC](https://www.videolan.org) as an external player
 
 ```bash
 cd apps/windows
 pnpm install
+pnpm setup:mpv
 pnpm tauri dev
 ```
 
@@ -140,6 +145,18 @@ Build an installer (NSIS and MSI in `target/release/bundle/`):
 cd apps/windows
 pnpm tauri build
 ```
+
+`pnpm setup:mpv` downloads pinned, SHA-256-verified LGPL builds of `libmpv-2.dll` and
+`libmpv-wrapper.dll` into the ignored `src-tauri/lib/` directory. The `pnpm tauri` command also
+runs setup automatically; subsequent runs verify and reuse the files. Setup needs internet access;
+installed apps include the libraries and play offline/local media without downloading codecs.
+The default architecture follows Node.js (`x64` or `arm64`); when cross-building, run
+`pnpm setup:mpv x86_64` or `pnpm setup:mpv aarch64` and invoke `pnpm exec tauri build --target …`
+to keep that selection. Direct Cargo builds require setup and a frontend build first.
+
+Both installers bundle `lib/` beside FluxTV.exe; the build also copies DLLs for development runs.
+The player libraries remain replaceable. See [third-party notices](apps/windows/scripts/THIRD-PARTY.md)
+for licenses, source references and redistribution requirements.
 
 On first launch, add your provider. Catalogs, favorites and settings are stored in
 `%APPDATA%\com.fluxtv.app\fluxtv.db`. Source passwords and playlist/guide URLs are stored as generic
@@ -230,10 +247,11 @@ Run the Rust unit tests (core parsers, store, HLS segmenter; FFI media server):
 cargo test -p fluxtv-core -p fluxtv-ffi
 ```
 
-On Windows, build the frontend first (`cd apps/windows`, `pnpm build`), then run
+On Windows, prepare the runtime and frontend first (`cd apps/windows`, `pnpm setup:mpv`, `pnpm build`), then run
 `cargo test -p fluxtv-windows` from the repository root. This includes an isolated native Credential
 Manager test with synthetic credentials; it checks saving, reopening, editing and deleting a source.
 The shared core tests also cover legacy migration, database scrubbing and vault failure recovery.
+Windows proxy tests cover movie byte ranges and cancellation while awaiting upstream headers.
 
 Smoke-test the core against a real Xtream provider. Put credentials in a `.env` file at the repository root
 (it is git-ignored):

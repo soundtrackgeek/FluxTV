@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import mpegts from "mpegts.js";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   AlertTriangle,
@@ -18,225 +17,47 @@ import {
   VolumeX,
   X,
 } from "lucide-react";
-import type { PlayInfo } from "../api";
+import { useMpv, type Track } from "../hooks/useMpv";
 import { openExternal, stopPlayback, toggleFavorite, zap } from "../actions";
 import { useApp, useEpg } from "../store";
 import { cx, fmtRange, progressOf, splitPrefix, useNow } from "../util";
 
-type Status = "idle" | "loading" | "playing" | "reconnecting" | "error";
-
-interface MediaInfo {
-  videoCodec?: string;
-  audioCodec?: string;
-  width?: number;
-  height?: number;
-  fps?: number;
+function clock(seconds: number): string {
+  const n = Math.max(0, Math.floor(seconds));
+  return `${Math.floor(n / 3600) ? `${Math.floor(n / 3600)}:` : ""}${String(Math.floor(n / 60) % 60).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
 }
 
-const MAX_RETRIES = 4;
-const STALL_TIMEOUT_MS = 12_000;
-
-// Codecs WebView2's Media Source Extensions can't decode; mpegts.js would otherwise play silently.
-function unsupportedAudio(codec?: string): string | null {
-  if (!codec) return null;
-  const c = codec.toLowerCase();
-  if ((c.startsWith("ac-3") || c.startsWith("ec-3")) && !MediaSource.isTypeSupported(`audio/mp4; codecs="${c}"`)) {
-    return c.startsWith("ec-3") ? "E-AC-3 (Dolby Digital Plus)" : "AC-3 (Dolby Digital)";
-  }
-  return null;
-}
-
-function describe(mi: MediaInfo | null): string {
-  if (!mi) return "";
-  const parts: string[] = [];
-  if (mi.width && mi.height) parts.push(`${mi.width}×${mi.height}`);
-  if (mi.fps) parts.push(`${Math.round(mi.fps)} fps`);
-  if (mi.videoCodec) parts.push(mi.videoCodec.split(".")[0].replace("avc1", "H.264").replace(/hvc1|hev1/, "HEVC"));
-  if (mi.audioCodec) parts.push(mi.audioCodec.split(".")[0].replace("mp4a", "AAC").replace("ac-3", "AC-3").replace("ec-3", "E-AC-3"));
-  return parts.join(" · ");
+function trackLabel(track: Track): string {
+  return [track.title || `Track ${track.id}`, track.lang, track.codec].filter(Boolean).join(" · ");
 }
 
 export function Player() {
-  const { playing, fullscreen } = useApp();
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const { playing, fullscreen, screen, display } = useApp();
   const containerRef = useRef<HTMLDivElement>(null);
-  const mpegtsRef = useRef<mpegts.Player | null>(null);
-  const retriesRef = useRef(0);
-  const retryTimer = useRef<number | undefined>(undefined);
-  const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState<string | null>(null);
-  const [mediaInfo, setMediaInfo] = useState<MediaInfo | null>(null);
-  const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(() => localStorage.getItem("fluxtv.muted") === "1");
-  const [volume, setVolume] = useState(() => Number(localStorage.getItem("fluxtv.volume") ?? "1"));
+  const [volume, setVolume] = useState(() => {
+    const saved = Number(localStorage.getItem("fluxtv.volume") ?? "1");
+    return Number.isFinite(saved) ? Math.max(0, Math.min(1, saved)) : 1;
+  });
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimer = useRef<number | undefined>(undefined);
-
-  const destroy = useCallback(() => {
-    window.clearTimeout(retryTimer.current);
-    const p = mpegtsRef.current;
-    mpegtsRef.current = null;
-    if (p) {
-      try {
-        p.pause();
-        p.unload();
-        p.detachMediaElement();
-        p.destroy();
-      } catch {
-        /* already torn down */
-      }
-    }
-    const v = videoRef.current;
-    if (v) {
-      v.removeAttribute("src");
-      v.load();
-    }
-  }, []);
-
-  const start = useCallback(
-    (info: PlayInfo) => {
-      destroy();
-      const video = videoRef.current;
-      if (!video) return;
-      setError(null);
-      setStatus(retriesRef.current > 0 ? "reconnecting" : "loading");
-
-      if (info.mode === "native") {
-        video.src = info.url;
-        video.play().catch(() => {});
-        return;
-      }
-      if (!mpegts.getFeatureList().mseLivePlayback) {
-        setStatus("error");
-        setError("This system does not support Media Source Extensions.");
-        return;
-      }
-      const player = mpegts.createPlayer(
-        { type: "mpegts", isLive: true, url: info.url },
-        {
-          enableWorker: true,
-          enableStashBuffer: true,
-          stashInitialSize: 384 * 1024,
-          lazyLoad: false,
-          autoCleanupSourceBuffer: true,
-          autoCleanupMaxBackwardDuration: 60,
-          autoCleanupMinBackwardDuration: 30,
-          // IPTV "RAW" feeds are high bitrate and arrive in bursts; a thin buffer stutters.
-          // Only chase the live edge once we fall well behind, and keep a healthy cushion.
-          liveBufferLatencyChasing: true,
-          liveBufferLatencyMaxLatency: 10,
-          liveBufferLatencyMinRemain: 3,
-          fixAudioTimestampGap: true,
-        },
-      );
-      player.on(mpegts.Events.MEDIA_INFO, (mi: MediaInfo) => setMediaInfo(mi));
-      player.on(mpegts.Events.ERROR, (type: string, detail: string, data: { msg?: string; code?: number }) => {
-        console.warn("mpegts error", type, detail, data);
-        const fatalMedia =
-          detail === mpegts.ErrorDetails.MEDIA_CODEC_UNSUPPORTED || detail === mpegts.ErrorDetails.MEDIA_FORMAT_UNSUPPORTED;
-        if (!fatalMedia && retriesRef.current < MAX_RETRIES) {
-          retriesRef.current += 1;
-          setStatus("reconnecting");
-          retryTimer.current = window.setTimeout(() => start(info), 1200 * retriesRef.current);
-          return;
-        }
-        setStatus("error");
-        setError(
-          fatalMedia
-            ? "This channel uses a format the built-in player can't decode."
-            : type === mpegts.ErrorTypes.NETWORK_ERROR
-              ? `The stream could not be loaded${data?.code ? ` (HTTP ${data.code})` : ""}. The channel may be offline, or another device is using your connection.`
-              : `Playback failed: ${data?.msg ?? detail}`,
-        );
-      });
-      if (import.meta.env.DEV) {
-        // Debug hook for inspecting playback from DevTools.
-        const w = window as unknown as { __flux: Record<string, unknown> };
-        w.__flux = { player, stats: null, logs: [] };
-        player.on(mpegts.Events.STATISTICS_INFO, (s: unknown) => (w.__flux.stats = s));
-      }
-      mpegtsRef.current = player;
-      player.attachMediaElement(video);
-      player.load();
-      video.play().catch(() => {
-        /* autoplay promise rejects if the stream is replaced quickly; harmless */
-      });
-    },
-    [destroy],
-  );
-
-  // Start/stop when the selected stream changes.
-  useEffect(() => {
-    retriesRef.current = 0;
-    setMediaInfo(null);
-    if (playing) start(playing);
-    else {
-      destroy();
-      setStatus("idle");
-    }
-    return destroy;
-  }, [playing?.url]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Video element events.
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    const onPlaying = () => {
-      setStatus("playing");
-      setPaused(false);
-      retriesRef.current = 0;
-    };
-    const onWaiting = () => setStatus((s) => (s === "playing" ? "loading" : s));
-    const onPause = () => setPaused(true);
-    const onError = () => {
-      if (playing?.mode === "native") {
-        setStatus("error");
-        setError("This file format isn't supported by the built-in player.");
-      }
-    };
-    v.addEventListener("playing", onPlaying);
-    v.addEventListener("waiting", onWaiting);
-    v.addEventListener("pause", onPause);
-    v.addEventListener("error", onError);
-    return () => {
-      v.removeEventListener("playing", onPlaying);
-      v.removeEventListener("waiting", onWaiting);
-      v.removeEventListener("pause", onPause);
-      v.removeEventListener("error", onError);
-    };
-  }, [playing?.mode]);
-
-  // Stall watchdog: live streams sometimes freeze without an error event.
-  useEffect(() => {
-    if (!playing || playing.mode !== "mpegts") return;
-    let lastTime = -1;
-    let lastChange = Date.now();
-    const t = window.setInterval(() => {
-      const v = videoRef.current;
-      if (!v || v.paused || status === "error") {
-        lastChange = Date.now();
-        return;
-      }
-      if (v.currentTime !== lastTime) {
-        lastTime = v.currentTime;
-        lastChange = Date.now();
-      } else if (Date.now() - lastChange > STALL_TIMEOUT_MS && retriesRef.current < MAX_RETRIES) {
-        retriesRef.current += 1;
-        lastChange = Date.now();
-        start(playing);
-      }
-    }, 2000);
-    return () => window.clearInterval(t);
-  }, [playing, status, start]);
+  const player = useMpv(playing, containerRef, `${fullscreen}/${screen}/${display}`, volume, muted);
+  const { status, error, paused, togglePause } = player;
+  const movie = playing?.channel.kind === "movie";
+  const audioTracks = player.tracks.filter((t) => t.type === "audio");
+  const subTracks = player.tracks.filter((t) => t.type === "sub");
+  const description = [
+    player.width && player.height ? `${player.width}×${player.height}` : "",
+    player.fps ? `${Math.round(player.fps)} fps` : "",
+    player.videoCodec, player.audioCodec.toUpperCase(),
+  ].filter(Boolean).join(" · ");
 
   useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = muted;
-    v.volume = volume;
     localStorage.setItem("fluxtv.muted", muted ? "1" : "0");
     localStorage.setItem("fluxtv.volume", String(volume));
   }, [muted, volume]);
+
+  useEffect(() => () => window.clearTimeout(hideTimer.current), []);
 
   const setFullscreen = useCallback(async (on: boolean) => {
     useApp.getState().setFullscreen(on);
@@ -246,18 +67,6 @@ export function Player() {
       console.warn("fullscreen", e);
     }
   }, []);
-
-  const togglePause = useCallback(() => {
-    const v = videoRef.current;
-    if (!v || !playing) return;
-    if (v.paused) {
-      // For live streams, jump back to the live edge when resuming.
-      if (playing.mode === "mpegts" && v.buffered.length) {
-        v.currentTime = Math.max(v.currentTime, v.buffered.end(v.buffered.length - 1) - 1);
-      }
-      v.play().catch(() => {});
-    } else v.pause();
-  }, [playing]);
 
   // Keyboard shortcuts.
   useEffect(() => {
@@ -316,25 +125,17 @@ export function Player() {
   const epg = useEpg((s) => (channel?.epgId ? s.entries[channel.epgId]?.data : undefined));
   const now = useNow(15_000);
   const current = epg?.now && epg.now.stop > now ? epg.now : null;
-  const badAudio = unsupportedAudio(mediaInfo?.audioCodec);
   const title = channel ? splitPrefix(channel.name).rest : "";
 
   return (
     <div
       ref={containerRef}
-      className={cx("player", fullscreen && "fullscreen", !controlsVisible && fullscreen && "hide-cursor")}
+      className={cx("player", player.ready && "native-active", fullscreen && "fullscreen", !controlsVisible && fullscreen && "hide-cursor")}
       onMouseMove={poke}
       onMouseLeave={() => setControlsVisible(false)}
       onDoubleClick={() => playing && setFullscreen(!fullscreen)}
     >
-      <video
-        ref={videoRef}
-        className="video"
-        playsInline
-        // Movies get native controls (seek bar); live TV uses the custom overlay.
-        controls={playing?.mode === "native"}
-        onClick={playing?.mode === "native" ? undefined : togglePause}
-      />
+      <div className="video-surface" onClick={togglePause} aria-label="Video surface" />
 
       {!playing && (
         <div className="player-placeholder">
@@ -358,10 +159,7 @@ export function Player() {
           <div className="row gap">
             <button
               className="btn"
-              onClick={() => {
-                retriesRef.current = 0;
-                start(playing);
-              }}
+              onClick={player.retry}
             >
               <RotateCw size={15} /> Retry
             </button>
@@ -388,16 +186,34 @@ export function Player() {
             </button>
           </div>
 
-          {badAudio && status === "playing" && (
-            <div className="audio-warning">
-              <AlertTriangle size={14} /> Audio is {badAudio}, which the built-in player can't decode.
-              <button className="link" onClick={() => openExternal(channel)}>
-                Open in external player
-              </button>
-            </div>
-          )}
-
-          <div className={cx("chrome-bottom", playing.mode === "native" && "native")}>
+          <div className="chrome-bottom">
+            {movie && player.seekable && player.duration > 0 && (
+              <div className="movie-seek">
+                <span>{clock(player.position)}</span>
+                <input aria-label="Seek movie" type="range" min={0} max={player.duration} step={1}
+                  value={player.position} onChange={(e) => player.seek(Number(e.target.value))} />
+                <span>{clock(player.duration)}</span>
+              </div>
+            )}
+            {(audioTracks.length > 1 || subTracks.length > 0) && (
+              <div className="track-controls">
+                {audioTracks.length > 1 && (
+                  <label>Audio <select aria-label="Audio track" value={player.aid}
+                    onChange={(e) => player.selectTrack("aid", e.target.value)}>
+                    <option value="auto">Automatic</option>
+                    {audioTracks.map((t) => <option key={t.id} value={String(t.id)}>{trackLabel(t)}</option>)}
+                  </select></label>
+                )}
+                {subTracks.length > 0 && (
+                  <label>Subtitles <select aria-label="Subtitle track" value={player.sid}
+                    onChange={(e) => player.selectTrack("sid", e.target.value)}>
+                    <option value="no">Off</option>
+                    <option value="auto">Automatic</option>
+                    {subTracks.map((t) => <option key={t.id} value={String(t.id)}>{trackLabel(t)}</option>)}
+                  </select></label>
+                )}
+              </div>
+            )}
             {current && (
               <div className="chrome-progress">
                 <div style={{ width: `${progressOf(current, now) * 100}%` }} />
@@ -417,6 +233,7 @@ export function Player() {
                 {muted || volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
               </button>
               <input
+                aria-label="Volume"
                 className="volume"
                 type="range"
                 min={0}
@@ -428,7 +245,7 @@ export function Player() {
                   setMuted(false);
                 }}
               />
-              <span className="media-info">{status === "playing" ? describe(mediaInfo) : ""}</span>
+              <span className="media-info">{status === "playing" ? description : ""}</span>
               <span className="spacer" />
               <button
                 className={cx("icon-btn", "star", channel.favorite && "on")}

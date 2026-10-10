@@ -4,6 +4,30 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-10-10
+
+### Added
+
+- Embedded libmpv Windows player with bundled LGPL AC-3, E-AC-3 and DTS audio decoding,
+  MPEG-2/H.264/HEVC video, MKV/MP4/MPEG-TS playback and automatic hardware decoding.
+- Audio and subtitle track selectors and a movie seek bar in the built-in player.
+- Pinned runtime setup with SHA-256 verification, architecture selection, development DLL copying,
+  installer resources and third-party notices.
+
+### Changed
+
+- Replaced mpegts.js and WebView2 media decoding with native playback behind the React controls.
+  Kept fullscreen, shortcuts, volume/mute persistence, channel zapping and external-player fallback.
+- Serialized native lifecycle operations to protect rapid channel changes and React StrictMode cleanup;
+  live failures and stalls reconnect with bounded retries.
+- Workspace and Windows app version 0.4.0.
+
+### Fixed
+
+- Windows built-in playback no longer depends on optional Windows Dolby audio decoders.
+- Cancel pending upstream connections on stop/switch and serialize connection establishment.
+  Regression tests cover cancellation before headers and forwarding movie range responses.
+
 ## [0.3.0] - 2026-10-10
 
 ### Added

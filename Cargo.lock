@@ -1263,7 +1263,7 @@ dependencies = [
 
 [[package]]
 name = "fluxtv-core"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "flate2",
  "futures-util",
@@ -1282,7 +1282,7 @@ dependencies = [
 
 [[package]]
 name = "fluxtv-ffi"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "fluxtv-core",
  "futures-util",
@@ -1297,7 +1297,7 @@ dependencies = [
 
 [[package]]
 name = "fluxtv-windows"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "axum",
  "fluxtv-core",
@@ -1310,6 +1310,7 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build",
+ "tauri-plugin-libmpv",
  "tauri-plugin-opener",
  "tauri-plugin-window-state",
  "tempfile",
@@ -2387,7 +2388,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e9ec52138abedcc58dc17a7c6c0c00a2bdb4f3427c7f63fa97fd0d859155caf"
 dependencies = [
  "gtk-sys",
- "libloading",
+ "libloading 0.7.4",
  "once_cell",
 ]
 
@@ -2414,6 +2415,16 @@ checksum = "b67380fd3b2fbe7527a606e18729d21c6f3951633d0500574c4dc22d2d638b9f"
 dependencies = [
  "cfg-if",
  "winapi",
+]
+
+[[package]]
+name = "libloading"
+version = "0.8.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7c4b02199fee7c5d21a5ae7d8cfa79a6ef5bb2fc834d6e9058e89c825efdc55"
+dependencies = [
+ "cfg-if",
+ "windows-link",
 ]
 
 [[package]]
@@ -4327,6 +4338,27 @@ dependencies = [
  "serde_json",
  "tauri-utils",
  "walkdir",
+]
+
+[[package]]
+name = "tauri-plugin-libmpv"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "447798aec64877a1e476c2ebc2360a8374740ccf32fdc31949e4942e3fef903e"
+dependencies = [
+ "base64 0.22.1",
+ "indexmap 2.14.2",
+ "libc",
+ "libloading 0.8.9",
+ "log",
+ "once_cell",
+ "raw-window-handle",
+ "scopeguard",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.21",
 ]
 
 [[package]]

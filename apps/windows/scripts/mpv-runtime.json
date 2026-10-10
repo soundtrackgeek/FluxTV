@@ -1,0 +1,22 @@
+{
+  "x86_64": {
+    "wrapper": {
+      "url": "https://github.com/nini22P/libmpv-wrapper/releases/download/v0.1.1/libmpv-wrapper-windows-x86_64.zip",
+      "sha256": "d2ff8b2edcd34d2968e544adaa915e5e5c48eb1a0995945005269c2af119a492"
+    },
+    "mpv": {
+      "url": "https://github.com/zhongfly/mpv-winbuild/releases/download/2026-10-09-06ee185d3f/mpv-dev-lgpl-x86_64-20261009-git-06ee185d3f.7z",
+      "sha256": "d60b44c1095d4d94b2cc4d7bb3a698689f126028681abd47aeaaf7a98adea3ac"
+    }
+  },
+  "aarch64": {
+    "wrapper": {
+      "url": "https://github.com/nini22P/libmpv-wrapper/releases/download/v0.1.1/libmpv-wrapper-windows-aarch64.zip",
+      "sha256": "3e8e504dddaadf4464589bafae74175d21ea401adb60ca2e516bb6003e6aa19d"
+    },
+    "mpv": {
+      "url": "https://github.com/zhongfly/mpv-winbuild/releases/download/2026-10-09-06ee185d3f/mpv-dev-lgpl-aarch64-20261009-git-06ee185d3f.7z",
+      "sha256": "66df0bd4f8682895e3f8b0ee6e99bf7000250d46f80273fea7656777be4bac92"
+    }
+  }
+}

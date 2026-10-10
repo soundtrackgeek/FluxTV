@@ -14,6 +14,8 @@ dist/
 # Tauri
 apps/windows/src-tauri/target/
 apps/windows/src-tauri/gen/schemas/
+apps/windows/src-tauri/lib/*
+!apps/windows/src-tauri/lib/.gitkeep
 
 # Editors / OS
 .vscode/*

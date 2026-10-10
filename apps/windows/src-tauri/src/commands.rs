@@ -218,8 +218,6 @@ pub async fn get_guide(
 pub struct PlayInfo {
     /// Local proxy URL for the stream.
     url: String,
-    /// `mpegts` (transmux with mpegts.js) or `native` (hand to `<video>` directly).
-    mode: &'static str,
     channel: Channel,
 }
 
@@ -235,11 +233,15 @@ pub async fn play(state: State<'_, AppState>, source_id: i64, kind: ContentKind,
     if let Err(e) = store.record_watch(source_id, kind, &channel_id) {
         log::warn!("could not record history: {e}");
     }
-    Ok(PlayInfo { url, mode: if is_ts { "mpegts" } else { "native" }, channel })
+    Ok(PlayInfo { url, channel })
 }
 
 #[tauri::command]
-pub async fn stop_playback(state: State<'_, AppState>) -> CmdResult<()> {
+pub async fn stop_playback(app: AppHandle, state: State<'_, AppState>) -> CmdResult<()> {
+    // Stop the decoder before handing the connection to an external player.
+    // Cancelling only the proxy could make native reconnect reclaim it.
+    use tauri_plugin_libmpv::MpvExt;
+    let _ = tauri::async_runtime::spawn_blocking(move || app.mpv().command("stop", &vec![], "main")).await;
     state.proxy.stop();
     Ok(())
 }
