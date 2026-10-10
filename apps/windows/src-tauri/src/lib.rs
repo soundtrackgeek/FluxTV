@@ -1,4 +1,5 @@
 mod commands;
+mod credentials;
 mod external;
 mod proxy;
 
@@ -16,7 +17,9 @@ pub fn run() {
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .setup(|app| {
             let data_dir = app.path().app_data_dir()?;
-            let core = Arc::new(fluxtv_core::FluxCore::open(data_dir.join("fluxtv.db"))?);
+            let store =
+                fluxtv_core::Store::open_with_credentials(data_dir.join("fluxtv.db"), credentials::platform_store()?)?;
+            let core = Arc::new(fluxtv_core::FluxCore::with_store(store)?);
             let proxy = tauri::async_runtime::block_on(proxy::Proxy::start(core.http().clone()))?;
             app.manage(AppState { core, proxy, refreshing: Mutex::new(HashSet::new()) });
             Ok(())

@@ -275,10 +275,30 @@ pub async fn open_external(
 
 #[tauri::command]
 pub async fn get_setting(state: State<'_, AppState>, key: String) -> CmdResult<Option<String>> {
+    check_ui_setting(&key)?;
     state.core.store().setting(&key).map_err(err)
 }
 
 #[tauri::command]
 pub async fn set_setting(state: State<'_, AppState>, key: String, value: Option<String>) -> CmdResult<()> {
+    check_ui_setting(&key)?;
     state.core.store().set_setting(&key, value.as_deref()).map_err(err)
+}
+
+// Guide URLs are credentials; the generic IPC must not expose or modify them.
+fn check_ui_setting(key: &str) -> CmdResult<()> {
+    if key == SETTING_EXTERNAL_PLAYER { Ok(()) } else { Err("Unknown setting".into()) }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ui_settings_cannot_access_credentials() {
+        assert!(check_ui_setting(SETTING_EXTERNAL_PLAYER).is_ok());
+        for key in ["m3u_epg_url.1", "schema_version", "credential_scrub_pending", "", "unknown"] {
+            assert!(check_ui_setting(key).is_err());
+        }
+    }
 }

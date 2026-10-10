@@ -29,6 +29,8 @@ A fast IPTV player built on a **shared Rust core**, with native front ends per p
 
 - **Providers**: Xtream Codes (server + username + password) and plain M3U/M3U8 playlists with an optional XMLTV guide URL.
   Pasting an Xtream `get.php?username=…&password=…` link is detected automatically and upgraded to the Xtream API.
+- **Windows Credential Manager** stores Xtream passwords, M3U playlist URLs and explicit or
+  playlist-discovered guide URLs. Existing source credentials migrate automatically on upgrade.
 - **Live TV** with categories (filterable), a virtualized channel list that handles 50,000+ channels, and live
   "now playing" info with progress bars.
 - **Movies (VOD)** from Xtream providers, with seeking.
@@ -139,7 +141,16 @@ cd apps/windows
 pnpm tauri build
 ```
 
-On first launch, add your provider. Data is stored in `%APPDATA%\com.fluxtv.app\fluxtv.db`.
+On first launch, add your provider. Catalogs, favorites and settings are stored in
+`%APPDATA%\com.fluxtv.app\fluxtv.db`. Source passwords and playlist/guide URLs are stored as generic
+credentials under `com.fluxtv.app` in **Windows Credential Manager**, for the current Windows user.
+
+On upgrade, FluxTV moves existing source secrets into Credential Manager, verifies them, clears their
+SQLite fields and removes leftover copies from the database's free pages and WAL. If credential storage
+fails, the app stops with an error and keeps unmigrated values for a retry. New saves never fall back to
+plaintext. Editing or deleting a provider replaces or removes its credentials; interrupted cleanup is
+retried on the next launch. Copying the database to another PC does not transfer these secrets: add the
+provider again on that PC. Individual M3U channel URLs remain part of the local catalog cache.
 
 ## Getting started (iOS, iPadOS, tvOS)
 
@@ -219,6 +230,11 @@ Run the Rust unit tests (core parsers, store, HLS segmenter; FFI media server):
 cargo test -p fluxtv-core -p fluxtv-ffi
 ```
 
+On Windows, build the frontend first (`cd apps/windows`, `pnpm build`), then run
+`cargo test -p fluxtv-windows` from the repository root. This includes an isolated native Credential
+Manager test with synthetic credentials; it checks saving, reopening, editing and deleting a source.
+The shared core tests also cover legacy migration, database scrubbing and vault failure recovery.
+
 Smoke-test the core against a real Xtream provider. Put credentials in a `.env` file at the repository root
 (it is git-ignored):
 
@@ -247,7 +263,6 @@ cargo run -p fluxtv-ffi --example live_check --release -- "id:movie:19" 120
 
 - Matroska (MKV) movies on Apple devices (remux to fragmented MP4 HLS in the core)
 - Series (Xtream `get_series_info`) and catch-up / timeshift playback
-- Windows: credential storage in Windows Credential Manager (the Apple apps use the Keychain)
 - Multiple guide sources per provider
 
 ## License

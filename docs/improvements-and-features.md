@@ -18,6 +18,10 @@ Most suggestions below build on that work rather than replace it.
 ### Security and data
 
 #### 1. Store Windows credentials in Windows Credential Manager
+**Status:** Implemented in 0.3.0 (2026-10-10): native Credential Manager storage, automatic verified
+migration of passwords and source playlist/guide URLs, credential cleanup, and regression tests.
+The notes below describe the original review baseline.
+
 **Today:** On Windows, the Xtream password is stored in plain text in the `sources.password` column of
 `%APPDATA%\com.fluxtv.app\fluxtv.db` ([store.rs](../crates/fluxtv-core/src/store.rs) schema). The welcome
 screen says "credentials are stored locally on this PC", which is true, but anyone who copies the file can

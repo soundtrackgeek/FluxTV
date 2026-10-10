@@ -4,6 +4,23 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-10-10
+
+### Added
+
+- Windows Credential Manager storage for Xtream passwords, M3U playlist URLs and explicit or
+  playlist-discovered XMLTV URLs, using the native Windows backend of `keyring`.
+- Automatic migration of existing source secrets, with verified writes before removing plaintext
+  from SQLite and scrubbing free pages and the WAL. Failed saves retain the previous credentials;
+  credential deletion is retried after a temporary vault failure.
+- Tests for secure source lifecycle, migration and failure recovery, plus a native Windows
+  Credential Manager integration test using synthetic credentials.
+
+### Changed
+
+- Windows settings IPC accepts only the external player setting, preventing access to guide credentials.
+- Windows onboarding describes Credential Manager protection. Workspace, core and Windows app version 0.3.0.
+
 ## [0.2.0] - 2026-09-30
 
 ### Added

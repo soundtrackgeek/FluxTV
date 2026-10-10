@@ -6,7 +6,13 @@
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::sync::{Mutex, MutexGuard};
+use std::sync::{Arc, Mutex, MutexGuard};
+
+mod credentials;
+#[cfg(test)]
+mod credentials_tests;
+pub use credentials::CredentialStore;
+use credentials::CredentialWrites;
 
 use rusqlite::{params, Connection, OptionalExtension, Row};
 
@@ -32,6 +38,15 @@ CREATE TABLE IF NOT EXISTS sources (
     catalog_updated_at INTEGER,
     epg_updated_at INTEGER
 );
+
+-- Platform credential references; no secret values belong in these tables.
+CREATE TABLE IF NOT EXISTS source_secrets (
+    source_id INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+    field TEXT NOT NULL,
+    credential_key TEXT NOT NULL UNIQUE,
+    PRIMARY KEY (source_id, field)
+);
+CREATE TABLE IF NOT EXISTS credential_cleanup (credential_key TEXT PRIMARY KEY);
 
 CREATE TABLE IF NOT EXISTS categories (
     source_id INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
@@ -111,6 +126,7 @@ pub struct Store {
     /// Passwords held only in memory (the Apple apps keep them in the Keychain and hand
     /// them over at launch). Used when the database row has no password.
     runtime_passwords: Mutex<HashMap<i64, String>>,
+    credentials: Option<Arc<dyn CredentialStore>>,
 }
 
 fn configure(conn: &Connection) -> Result<()> {
@@ -171,21 +187,31 @@ const PROGRAMME_COLUMNS: &str = "channel, start, stop, title, subtitle, descript
 
 impl Store {
     pub fn open(path: impl AsRef<Path>) -> Result<Self> {
-        let path = path.as_ref().to_path_buf();
+        Self::open_impl(path.as_ref(), None)
+    }
+
+    /// Open with platform credential storage and migrate legacy plaintext on startup.
+    pub fn open_with_credentials(path: impl AsRef<Path>, credentials: Arc<dyn CredentialStore>) -> Result<Self> {
+        Self::open_impl(path.as_ref(), Some(credentials))
+    }
+
+    fn open_impl(path: &Path, credentials: Option<Arc<dyn CredentialStore>>) -> Result<Self> {
+        let path = path.to_path_buf();
         if let Some(dir) = path.parent() {
             std::fs::create_dir_all(dir)?;
         }
         let conn = Connection::open(&path)?;
         configure(&conn)?;
-        let store = Self { path: Some(path), conn: Mutex::new(conn), runtime_passwords: Mutex::default() };
+        let store = Self { path: Some(path), conn: Mutex::new(conn), runtime_passwords: Mutex::default(), credentials };
         store.migrate()?;
+        store.migrate_credentials()?;
         Ok(store)
     }
 
     pub fn open_in_memory() -> Result<Self> {
         let conn = Connection::open_in_memory()?;
         configure(&conn)?;
-        let store = Self { path: None, conn: Mutex::new(conn), runtime_passwords: Mutex::default() };
+        let store = Self { path: None, conn: Mutex::new(conn), runtime_passwords: Mutex::default(), credentials: None };
         store.migrate()?;
         Ok(store)
     }
@@ -220,6 +246,12 @@ impl Store {
     // ----- settings -----------------------------------------------------------------------
 
     pub fn setting(&self, key: &str) -> Result<Option<String>> {
+        if let Some(id) = Self::guide_setting_id(key) {
+            let conn = self.conn();
+            if let Some(value) = self.secret_setting(&conn, id)? {
+                return Ok(Some(value));
+            }
+        }
         Ok(self
             .conn()
             .query_row("SELECT value FROM meta WHERE key = ?1", [format!("setting.{key}")], |r| r.get(0))
@@ -228,6 +260,17 @@ impl Store {
 
     pub fn set_setting(&self, key: &str, value: Option<&str>) -> Result<()> {
         let k = format!("setting.{key}");
+        if let (Some(vault), Some(id)) = (&self.credentials, Self::guide_setting_id(key)) {
+            let mut conn = self.conn();
+            let tx = conn.transaction()?;
+            let mut writes = CredentialWrites::new(vault.clone());
+            writes.write(&tx, id, "discovered_epg", value)?;
+            tx.execute("DELETE FROM meta WHERE key = ?1", [k])?;
+            tx.commit()?;
+            writes.commit();
+            self.cleanup_credentials(&conn)?;
+            return Ok(());
+        }
         match value {
             Some(v) => self.conn().execute("INSERT OR REPLACE INTO meta(key, value) VALUES (?1, ?2)", params![k, v])?,
             None => self.conn().execute("DELETE FROM meta WHERE key = ?1", [k])?,
@@ -238,25 +281,80 @@ impl Store {
     // ----- sources ------------------------------------------------------------------------
 
     pub fn insert_source(&self, s: &NewSource) -> Result<Source> {
-        let conn = self.conn();
-        conn.execute(
+        let mut conn = self.conn();
+        let tx = conn.transaction()?;
+        let secure = self.credentials.is_some();
+        tx.execute(
             "INSERT INTO sources(name, kind, url, username, password, epg_url, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-            params![s.name, s.kind.as_str(), s.url, s.username, s.password, s.epg_url, now()],
+            params![s.name, s.kind.as_str(), if secure && s.kind == SourceKind::M3u { "" } else { &s.url },
+                s.username, if secure { None } else { s.password.as_deref() },
+                if secure { None } else { s.epg_url.as_deref() }, now()],
         )?;
-        let id = conn.last_insert_rowid();
+        let id = tx.last_insert_rowid();
+        let mut writes = self.credentials.as_ref().map(|v| CredentialWrites::new(v.clone()));
+        if let Some(writes) = &mut writes {
+            writes.source(&tx, id, s)?;
+        }
+        tx.commit()?;
+        if let Some(writes) = writes {
+            writes.commit();
+        }
         drop(conn);
         self.source(id)
     }
 
     pub fn update_source(&self, id: i64, s: &NewSource) -> Result<Source> {
-        let changed = self.conn().execute(
+        let mut conn = self.conn();
+        let existing = conn.query_row(
+            "SELECT id, name, kind, url, username, password, epg_url, created_at, catalog_updated_at, epg_updated_at FROM sources WHERE id = ?1",
+            [id], source_from_row,
+        ).optional()?.ok_or_else(|| Error::NotFound(format!("source {id}")))?;
+        let existing = self.hydrate_secrets(&conn, existing)?;
+        let origin_changed = existing.kind != s.kind || existing.url != s.url;
+        let tx = conn.transaction()?;
+        let secure = self.credentials.is_some();
+        let changed = tx.execute(
             "UPDATE sources SET name = ?2, kind = ?3, url = ?4, username = ?5,
-                 password = COALESCE(?6, password), epg_url = ?7 WHERE id = ?1",
-            params![id, s.name, s.kind.as_str(), s.url, s.username, s.password, s.epg_url],
+                 password = CASE WHEN ?8 THEN NULL ELSE COALESCE(?6, password) END, epg_url = ?7 WHERE id = ?1",
+            params![
+                id,
+                s.name,
+                s.kind.as_str(),
+                if secure && s.kind == SourceKind::M3u { "" } else { &s.url },
+                s.username,
+                if secure { None } else { s.password.as_deref() },
+                if secure { None } else { s.epg_url.as_deref() },
+                secure
+            ],
         )?;
         if changed == 0 {
             return Err(Error::NotFound(format!("source {id}")));
         }
+        let mut writes = self.credentials.as_ref().map(|v| CredentialWrites::new(v.clone()));
+        if let Some(writes) = &mut writes {
+            // Blank Xtream passwords mean unchanged, including direct Store callers.
+            if s.kind != SourceKind::Xtream || s.password.as_deref().is_some_and(|p| !p.is_empty()) {
+                writes.write(
+                    &tx,
+                    id,
+                    "password",
+                    if s.kind == SourceKind::Xtream { s.password.as_deref() } else { None },
+                )?;
+            }
+            writes.write(&tx, id, "url", (s.kind == SourceKind::M3u).then_some(s.url.as_str()))?;
+            writes.write(&tx, id, "epg_url", s.epg_url.as_deref())?;
+            // A discovered guide belongs to the old playlist, not to the new provider URL.
+            if origin_changed {
+                writes.write(&tx, id, "discovered_epg", None)?;
+            }
+        }
+        tx.commit()?;
+        if let Some(writes) = writes {
+            writes.commit();
+        }
+        if secure { self.set_runtime_password(id, None); }
+        self.cleanup_credentials(&conn)?;
+        drop(conn);
         self.source(id)
     }
 
@@ -267,12 +365,12 @@ impl Store {
              FROM sources ORDER BY id",
         )?;
         let rows = stmt.query_map([], source_from_row)?.collect::<rusqlite::Result<Vec<_>>>()?;
-        Ok(rows.into_iter().map(|s| self.with_runtime_password(s)).collect())
+        rows.into_iter().map(|s| self.hydrate_secrets(&conn, s)).collect()
     }
 
     pub fn source(&self, id: i64) -> Result<Source> {
-        let source = self
-            .conn()
+        let conn = self.conn();
+        let source = conn
             .query_row(
                 "SELECT id, name, kind, url, username, password, epg_url, created_at, catalog_updated_at, epg_updated_at
                  FROM sources WHERE id = ?1",
@@ -281,7 +379,7 @@ impl Store {
             )
             .optional()?
             .ok_or_else(|| Error::NotFound(format!("source {id}")))?;
-        Ok(self.with_runtime_password(source))
+        self.hydrate_secrets(&conn, source)
     }
 
     /// Provide a source's password for this session without writing it to the database.
@@ -301,10 +399,17 @@ impl Store {
     }
 
     pub fn delete_source(&self, id: i64) -> Result<()> {
-        self.with_bulk_conn(|c| {
-            c.execute("DELETE FROM sources WHERE id = ?1", [id])?;
-            Ok(())
-        })
+        let mut conn = self.conn();
+        let tx = conn.transaction()?;
+        tx.execute(
+            "INSERT OR IGNORE INTO credential_cleanup SELECT credential_key FROM source_secrets WHERE source_id = ?1",
+            [id],
+        )?;
+        tx.execute("DELETE FROM meta WHERE key = ?1", [format!("setting.m3u_epg_url.{id}")])?;
+        tx.execute("DELETE FROM sources WHERE id = ?1", [id])?;
+        tx.commit()?;
+        self.set_runtime_password(id, None);
+        self.cleanup_credentials(&conn)
     }
 
     // ----- catalog ------------------------------------------------------------------------

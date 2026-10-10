@@ -21,7 +21,7 @@ function Welcome() {
           </div>
           <span>FluxTV</span>
         </div>
-        <p className="muted">Add your IPTV provider to get started. Your credentials are stored locally on this PC.</p>
+        <p className="muted">Add your IPTV provider to get started. Your credentials are protected by Windows Credential Manager.</p>
         <SourceForm
           onSaved={async (s) => {
             await loadSources();
