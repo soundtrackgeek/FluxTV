@@ -17,7 +17,7 @@ Most suggestions below build on that work rather than replace it.
 
 ### Security and data
 
-#### 1. Store Windows credentials in Windows Credential Manager
+#### 1. Store Windows credentials in Windows Credential Manager - DONE
 **Status:** Implemented in 0.3.0 (2026-10-10): native Credential Manager storage, automatic verified
 migration of passwords and source playlist/guide URLs, credential cleanup, and regression tests.
 The notes below describe the original review baseline.
