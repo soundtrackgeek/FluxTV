@@ -4,6 +4,29 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] - 2026-10-10
+
+### Added
+
+- Day picker, previous/next day, Now and jump-to-time controls on Windows, iPhone, iPad and Apple TV.
+- Sports, news and film category colors, a legend, and accessible programme/category labels.
+- Windows arrow-key navigation through channels/programmes, with Enter opening programme details.
+- Visible-row guide error states and retry controls, timeline regression tests, and a guide validation report.
+- Debug-only Apple `FLUXTV_DEBUG_TAB` launch option for repeatable guide validation.
+
+### Changed
+
+- Guide queries cover the visible time range plus a half-hour buffer on each side; scrolling extends
+  the timeline in six-hour steps instead of stopping at a fixed daily window.
+- Apple guide uses lazy rows and row-local programme loading, removes the 250-channel limit, and
+  keeps channel labels/time headings visible with native tvOS focus sections.
+- Workspace, Windows app and Apple app version 0.6.0.
+
+### Fixed
+
+- Discard late guide responses after a provider, channel selection or time-range change.
+- Preserve the visible time when extending the timeline backwards and the chosen day when jumping to midnight.
+
 ## [0.5.0] - 2026-10-10
 
 ### Added

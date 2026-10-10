@@ -198,7 +198,12 @@ wrong or missing match, and no correction for providers whose XMLTV times are of
   channel…" action that searches `epg_channels`.
 - Add a per-source "Guide time offset" setting, applied at import. TiviMate offers the same setting.
 
-#### 14. Make the TV guide navigable and scalable
+#### 14. Make the TV guide navigable and scalable - DONE
+**Status:** Implemented in 0.6.0 (2026-10-10): date/time navigation and Now, viewport-range queries,
+a timeline that extends while scrolling, uncapped lazy Apple rows, category colors, Windows arrow-key
+navigation and native tvOS focus sections. See [guide validation and coverage limits](guide-validation.md).
+The notes below describe the original review baseline.
+
 **Today:** The Windows guide shows a fixed window from 2 h back to 22 h ahead
 ([Guide.tsx:13](../apps/windows/src/components/Guide.tsx#L13)). The Apple guide shows 12 h, at most 250
 channels, and builds every row up front with a non-lazy `VStack` ([GuideView.swift:15](../apps/apple/FluxTV/Views/GuideView.swift#L15)).

@@ -1,12 +1,13 @@
 {
   "name": "fluxtv-windows",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "setup:mpv": "node scripts/setup-mpv.mjs",
     "build": "tsc && vite build",
+    "test:guide": "node --experimental-strip-types --test tests/guide.test.ts",
     "preview": "vite preview",
     "tauri": "node scripts/setup-mpv.mjs && tauri"
   },

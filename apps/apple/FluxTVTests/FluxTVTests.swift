@@ -75,3 +75,23 @@ final class AccountStoreTests: XCTestCase {
         XCTAssertNil(try AccountStore.loadAll().first { $0.key == account.key })
     }
 }
+
+final class GuideTimelineTests: XCTestCase {
+    func testViewportQueriesHaveBoundedOverscan() {
+        let timeline = GuideTimeline(around: 40_000)
+        let range = timeline.visibleRange(offset: 151, width: 900, pointsPerMinute: 5)
+        XCTAssertLessThanOrEqual(range.count, 6 * 3600)
+        XCTAssertEqual(range, timeline.visibleRange(offset: 152, width: 900, pointsPerMinute: 5))
+        let later = timeline.visibleRange(offset: 1950, width: 900, pointsPerMinute: 5)
+        XCTAssertGreaterThan(later.lowerBound, range.lowerBound)
+    }
+
+    func testExtendingEarlierPreservesVisibleTimes() {
+        var timeline = GuideTimeline(around: 40_000)
+        let before = timeline.visibleRange(offset: 100, width: 700, pointsPerMinute: 4.5)
+        timeline.from -= GuideTimeline.extensionSeconds
+        let after = timeline.visibleRange(offset: 100 + CGFloat(GuideTimeline.extensionSeconds) / 60 * 4.5,
+            width: 700, pointsPerMinute: 4.5)
+        XCTAssertEqual(before, after)
+    }
+}

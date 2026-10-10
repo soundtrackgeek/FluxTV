@@ -82,6 +82,13 @@ struct MainTabs: View {
             }
         }
         .animation(.default, value: app.isRefreshing)
+        #if DEBUG
+        .task {
+            if let value = ProcessInfo.processInfo.environment["FLUXTV_DEBUG_TAB"], let initialTab = AppTab(rawValue: value) {
+                tab = initialTab
+            }
+        }
+        #endif
     }
 
     private var bannerInset: CGFloat {

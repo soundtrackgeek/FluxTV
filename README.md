@@ -37,7 +37,9 @@ A fast IPTV player built on a **shared Rust core**, with native front ends per p
 - **Fast search** across all channels (~20 ms for 55k names). Matching ignores case, accents and the
   superscript tags providers love (`ᴴᴰ`, `ᴿᴬᵂ`, `ᵁᴴᴰ`), so `nrk1 raw` finds `GOLD| NRK1 ᴿᴬᵂ`.
 - **TV guide (EPG)**: now/next in the list, programme details and "up next" for the playing channel, and a
-  full guide grid (channels × 24 h timeline) for any category or your favorites.
+  guide grid for any category or your favorites, with a day picker, **Now**, and **jump to time**.
+  Scroll horizontally to extend the timeline; only visible rows and the nearby time range are loaded.
+  Sports, news and films have category colors. Use arrow keys to move through the grid and Enter for details.
   Channels without an EPG id are matched to the guide by name (thousands of extra channels get guide data).
 - **Favorites** and **recently watched**, preserved across playlist refreshes.
 - **Built-in libmpv player**, with bundled LGPL decoders for AC-3, E-AC-3, DTS, AAC and MP3 audio,
@@ -67,6 +69,8 @@ Native codec, control and packaging checks are recorded in
 | `M` | Mute |
 | `PgUp` / `PgDn` | Previous / next channel (`↑` / `↓` in fullscreen) |
 | `Ctrl+K` or `/` | Search |
+| `←` / `→` / `↑` / `↓` in the guide | Move between programmes and channels |
+| `Enter` on a guide programme | Open programme details |
 
 ## Features (iPhone, iPad and Apple TV)
 
@@ -89,7 +93,9 @@ AVPlayer, so they get the system player UI, Picture in Picture, AirPlay and the 
   to about two seconds. Longer provider keyframe intervals still take longer to start.
 - **Movies** with seeking: MP4 files are passed through; movies stored as MPEG-TS are served as a
   seekable HLS VOD playlist. Matroska (MKV) movies are not playable yet and say so.
-- **Search** (same ranking as Windows), **TV guide grid**, programme details and "watch" from the guide.
+- **Search** (same ranking as Windows) and **TV guide grid** with day/time navigation, **Now**, category
+  colors, programme details and "watch". The timeline extends while scrolling; lazy rows load programmes
+  around the viewport, with no 250-channel cap. Apple TV uses native remote focus between channels and programmes.
 - **iPhone**: video with channel info, now/next and a channel switcher in portrait; full screen in
   landscape. Background audio and Picture in Picture. iPad gets a sidebar.
 - **Apple TV**: the native full-screen player; swipe down for a **Channels** tab to zap, and
@@ -206,9 +212,10 @@ xcodebuild -project FluxTV.xcodeproj -scheme "FluxTV iOS" -destination 'platform
 xcodebuild -project FluxTV.xcodeproj -scheme "FluxTV tvOS" -destination 'generic/platform=tvOS Simulator' build
 ```
 
-Debug builds accept two launch environment variables for simulator testing (ignored in release builds):
+Debug builds accept launch environment variables for simulator testing (ignored in release builds):
 `FLUXTV_SEED_SERVER`, `FLUXTV_SEED_USERNAME` and `FLUXTV_SEED_PASSWORD` add an Xtream account on a fresh
 install, and `FLUXTV_DEBUG_AUTOPLAY=<search>` starts the best live match (handy on Apple TV simulators).
+`FLUXTV_DEBUG_TAB=guide` opens the guide directly (also accepts `live`, `movies`, `search`, or `settings`).
 With `simctl`, prefix them with `SIMCTL_CHILD_`.
 
 App icons are generated from the logo geometry:
@@ -252,6 +259,9 @@ The App Store Connect record is **FluxTV Player** (the name "FluxTV" was taken);
 app is still called FluxTV.
 
 ## Development
+
+Run the Windows guide calculation tests with `cd apps/windows && pnpm test:guide` (Node 22.12+).
+Guide UI checks and platform coverage are recorded in [guide validation](docs/guide-validation.md).
 
 Run the Rust unit tests (core parsers, store, HLS segmenter; FFI media server):
 

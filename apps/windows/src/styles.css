@@ -910,9 +910,11 @@ code {
   flex: 1;
   min-height: 0;
   display: flex;
+  flex-direction: column;
 }
 .guide-scroll {
   flex: 1;
+  min-height: 0;
   overflow: auto;
 }
 .guide-timebar {
@@ -1067,6 +1069,69 @@ code {
   top: 8px;
   right: 8px;
 }
+
+.guide-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-2);
+}
+.guide-nav input {
+  width: auto;
+  padding: 5px 8px;
+  color-scheme: dark;
+}
+.guide-legend {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-2);
+}
+.guide-legend span::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: var(--genre);
+}
+.guide-legend .sports, .guide-prog.category-sports {
+  --genre: #50c99b;
+}
+.guide-legend .news, .guide-prog.category-news {
+  --genre: #60a5fa;
+}
+.guide-legend .film, .guide-prog.category-film {
+  --genre: #c295f5;
+}
+.guide-prog {
+  border-left: 3px solid var(--genre, var(--border));
+}
+.guide-prog:focus-visible, .guide-channel:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  z-index: 3;
+}
+.guide-prog.live {
+  box-shadow: inset 0 -2px var(--genre, var(--accent));
+}
+.guide-error {
+  position: absolute;
+  top: 54px;
+  left: 220px;
+  z-index: 8;
+  padding: 8px 12px;
+  color: var(--text-2);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
 
 /* ----- settings ----- */
 .settings {

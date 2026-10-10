@@ -248,7 +248,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = "0.5.0";
+				MARKETING_VERSION = "0.6.0";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.soundtrackgeek.fluxtv.tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = "iphoneos";
@@ -289,7 +289,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = "0.5.0";
+				MARKETING_VERSION = "0.6.0";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.soundtrackgeek.fluxtv.tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = "iphoneos";
@@ -320,7 +320,7 @@
 					"$(inherited)",
 					"$(BUILT_PRODUCTS_DIR)",
 				);
-				MARKETING_VERSION = "0.5.0";
+				MARKETING_VERSION = "0.6.0";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lfluxtv_ffi",
@@ -361,7 +361,7 @@
 					"$(inherited)",
 					"$(BUILT_PRODUCTS_DIR)",
 				);
-				MARKETING_VERSION = "0.5.0";
+				MARKETING_VERSION = "0.6.0";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lfluxtv_ffi",
@@ -421,7 +421,7 @@
 					"$(inherited)",
 					"$(BUILT_PRODUCTS_DIR)",
 				);
-				MARKETING_VERSION = "0.5.0";
+				MARKETING_VERSION = "0.6.0";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lfluxtv_ffi",
@@ -462,7 +462,7 @@
 					"$(inherited)",
 					"$(BUILT_PRODUCTS_DIR)",
 				);
-				MARKETING_VERSION = "0.5.0";
+				MARKETING_VERSION = "0.6.0";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lfluxtv_ffi",
